@@ -1,0 +1,7 @@
+[24-Dec-2024 01:32:21 America/Chicago] PHP Warning:  require(/home1/zaara4ml/erp.zaarapp.com/public/../vendor/autoload.php): Failed to open stream: No such file or directory in /home1/zaara4ml/erp.zaarapp.com/public/index.php on line 34
+[24-Dec-2024 01:32:21 America/Chicago] PHP Fatal error:  Uncaught Error: Failed opening required '/home1/zaara4ml/erp.zaarapp.com/public/../vendor/autoload.php' (include_path='.:/opt/cpanel/ea-php82/root/usr/share/pear') in /home1/zaara4ml/erp.zaarapp.com/public/index.php:34
+Stack trace:
+#0 /home1/zaara4ml/erp.zaarapp.com/index.php(21): require_once()
+#1 {main}
+  thrown in /home1/zaara4ml/erp.zaarapp.com/public/index.php on line 34
+[24-Dec-2024 01:44:34 America/Chicago] PHP Fatal error:  Out of memory (allocated 213004288 bytes) (tried to allocate 8388608 bytes) in /home1/zaara4ml/erp.zaarapp.com/vendor/composer/autoload_classmap.php on line 32773
