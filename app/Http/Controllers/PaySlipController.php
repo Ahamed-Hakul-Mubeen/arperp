@@ -146,15 +146,19 @@ class PaySlipController extends Controller
 
     }
 
+
     public function destroy($id)
     {
         $payslip = PaySlip::find($id);
+        $payslip_month = date('m-Y',strtotime($payslip->created_at));
         TransactionLines::where("reference", "Payslip")->where("reference_id", $id)->where('created_by', \Auth::user()->creatorId())->delete();
 
         $employee = Employee::find($payslip->employee_id);
         Utility::bankAccountBalance($employee->account, $payslip->net_payble, 'credit');
 
         $payslip->delete();
+
+        $loan = Loan::where('employee_id', $payslip->employee_id)->where('last_emi', $payslip_month)->increment('pending_months', 1);
 
         return true;
     }

@@ -2,21 +2,21 @@
 <div class="modal-body">
     <div class="card-body p-0">
         <div class="row">
-            <div class="col-md-12">
+            <div class="col-lg-4 col-md-6">
                 <div class="form-group">
                     {{ Form::label('title', __('Title')) }}<span class="text-danger">*</span>
                     {{ Form::text('title',null, array('class' => 'form-control ','required'=>'required')) }}
                 </div>
             </div>
-            <div class="col-md-6">
+            <div class="col-lg-4 col-md-6">
                 <div class="form-group">
                     {{ Form::label('loan_option', __('Loan Options')) }}<span class="text-danger">*</span>
                     {{ Form::select('loan_option',$loan_options,null, array('class' => 'form-control select','required'=>'required')) }}
                 </div>
             </div>
-            <div class="col-md-6">
+            <div class="col-lg-4 col-md-6">
                 <div class="form-group">
-                    {{ Form::label('type', __('Type'), ['class' => 'form-label']) }}<span class="text-danger">*</span>
+                    {{ Form::label('type', __('Type')) }}<span class="text-danger">*</span>
                     {{ Form::select('type', $loans, null, ['class' => 'form-control select amount_type', 'required' => 'required']) }}
                 </div>
             </div>
@@ -25,6 +25,10 @@
                     {{ Form::label('amount', __('Loan Amount'),['class'=>'form-label amount_label']) }}<span class="text-danger">*</span>
                     {{ Form::number('amount',null, array('class' => 'form-control ','required'=>'required')) }}
                 </div>
+            </div>
+            <div class="form-group col-md-6">
+                {{ Form::label('no_of_months', __('No Of Months'),['class'=>'form-label amount_label']) }}<span class="text-danger">*</span>
+                {{ Form::number('no_of_months',null, array('class' => 'form-control ','required'=>'required','step'=>'0.01','min' => 1)) }}
             </div>
 {{--            <div class="col-md-6">--}}
 {{--                <div class="form-group">--}}

@@ -99,8 +99,17 @@ class Employee extends Model
         });
 
         // Calculate total loans
+        // dd($this->loan->sum());
         $total_loan = $this->loans->sum(function ($loan) use ($basic_salary) {
-            return ($loan->type === 'fixed') ? $loan->amount : ($loan->amount * $basic_salary / 100);
+            if($loan->pending_months > 0)
+            {
+                $loan->pending_months = $loan->pending_months - 1;
+                $loan->last_emi = date('m-Y');
+                $loan->save();
+                
+                return ($loan->type === 'fixed') ? $loan->amount : ($loan->amount * $basic_salary / 100);
+            }
+            return 0;
         });
 
         // Calculate total saturation deductions

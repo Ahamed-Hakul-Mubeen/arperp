@@ -29,6 +29,7 @@ class LoanController extends Controller
                                    'loan_option' => 'required',
                                    'title' => 'required',
                                    'amount' => 'required',
+                                   'no_of_months' => 'required',
                                    'reason' => 'required',
                                ]
             );
@@ -45,6 +46,8 @@ class LoanController extends Controller
             $loan->title       = $request->title;
             $loan->amount      = $request->amount;
             $loan->type        = $request->type;
+            $loan->no_of_months        = $request->no_of_months;
+            $loan->pending_months        = $request->no_of_months;
 //            $loan->start_date  = $request->start_date;
 //            $loan->end_date    = $request->end_date;
             $loan->reason      = $request->reason;
@@ -99,6 +102,7 @@ class LoanController extends Controller
                                        'title' => 'required',
                                        'amount' => 'required',
                                        'reason' => 'required',
+                                       'no_of_months' => 'required',
                                    ]
                 );
                 if($validator->fails())
@@ -107,10 +111,17 @@ class LoanController extends Controller
 
                     return redirect()->back()->with('error', $messages->first());
                 }
+                if($request->no_of_months < $loan->no_of_months && ($loan->no_of_months - $loan->pending_months) > $request->no_of_months)
+                {
+                    return redirect()->back()->with('error', __('You cannot reduce the number of months by more than the number of months already paid.'));
+                }
+                $old_loan_months = $loan->no_of_months;
                 $loan->loan_option = $request->loan_option;
                 $loan->title       = $request->title;
                 $loan->type        = $request->type;
                 $loan->amount      = $request->amount;
+                $loan->no_of_months        = $request->no_of_months;
+                $loan->pending_months        = $loan->pending_months + ( $loan->no_of_months - $old_loan_months);
 //                $loan->start_date  = $request->start_date;
 //                $loan->end_date    = $request->end_date;
                 $loan->reason      = $request->reason;

@@ -229,6 +229,8 @@
                                             <th>{{__('Title')}}</th>
                                             <th>{{__('Type')}}</th>
                                             <th>{{__('Loan Amount')}}</th>
+                                            <th>{{__('Total Months')}}</th>
+                                            <th>{{__('Pending Months')}}</th>
 {{--                                            <th>{{__('Start Date')}}</th>--}}
 {{--                                            <th>{{__('End Date')}}</th>--}}
                                             @if(\Auth::user()->type != 'Employee')
@@ -249,6 +251,8 @@
                                                 @else
                                                     <td>{{  ($loan->amount) }}% (${{$loan->tota_allow  }})</td>
                                                 @endif
+                                                <td>{{ $loan->no_of_months }}</td>
+                                                <td>{{ $loan->pending_months }}</td>
                                                 {{--                                        <td>{{  \Auth::user()->priceFormat($loan->amount) }}</td>--}}
 {{--                                                <td>{{  \Auth::user()->dateFormat($loan->start_date) }}</td>--}}
 {{--                                                <td>{{ \Auth::user()->dateFormat( $loan->end_date) }}</td>--}}
@@ -269,6 +273,7 @@
                                                     @endcan
                                                 </td>
                                                 @endif
+                                                
                                             </tr>
                                         @endforeach
                                         </tbody>

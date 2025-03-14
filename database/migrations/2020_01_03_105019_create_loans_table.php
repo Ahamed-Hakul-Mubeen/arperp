@@ -23,7 +23,8 @@ class CreateLoansTable extends Migration
             $table->date('start_date');
             $table->date('end_date');
             $table->integer('no_of_months')->nullable();
-            $table->integer('panding_months')->nullable();
+            $table->integer('pending_months')->nullable();
+            $table->string('last_emi')->nullable();
             $table->string('reason');
             $table->integer('created_by');
             $table->timestamps();
