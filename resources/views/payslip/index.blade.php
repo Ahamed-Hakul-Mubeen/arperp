@@ -15,7 +15,11 @@
             <div class="card">
                 <div class="card-body">
                     {{ Form::open(['route' => ['payslip.store'], 'method' => 'POST', 'id' => 'payslip_form']) }}
-                    <div class="d-flex align-items-center justify-content-end">
+                    <div class="row mx-0">
+                        <div class="col-xl-5 col-lg-5 col-md-5">
+                            <h4>Net Salary Payable ({{ date('M-Y') }})</h4>
+                            <h2>{{ \Auth::user()->priceFormat($total_payable) }}</h2>
+                        </div>
                         <div class="col-xl-2 col-lg-3 col-md-3">
                             <div class="btn-box">
                                 {{ Form::label('month', __('Select Month'), ['class' => 'form-label']) }}
@@ -28,8 +32,8 @@
                                 {{ Form::select('year', $year, date('Y'), ['class' => 'form-control select']) }}
                             </div>
                         </div>
-                        <div class="col-auto mt-4 float-end ms-2">
-                            <button type="submit" class="btn btn-primary">{{ __('Generate Payslip') }}</button>
+                        <div class="col-md-3 mt-4 d-flex align-items-center justify-content-end">
+                            <button type="submit" class="btn btn-primary mb-3">{{ __('Generate Payslip') }}</button>
                             {{-- <a href="#" class="btn btn-primary" onclick="document.getElementById('payslip_form').submit(); return false;"
                            data-bs-toggle="tooltip" title="{{ __('payslip') }}" data-original-title="{{ __('payslip') }}">{{ __('Generate Payslip') }}
                         </a> --}}

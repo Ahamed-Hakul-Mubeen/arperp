@@ -61,8 +61,8 @@ class PaySlipController extends Controller
                 date("Y", strtotime("-4 year")) => date("Y", strtotime("-4 year")),
                 date("Y", strtotime("-5 year")) => date("Y", strtotime("-5 year")),
             ];
-
-            return view('payslip.index', compact('employees', 'month', 'year'));
+            $total_payable = Payslip::where('created_by', \Auth::user()->creatorId())->where('salary_month',date('Y-m'))->sum('net_payble');
+            return view('payslip.index', compact('employees', 'month', 'year','total_payable'));
         }
         else
         {
