@@ -11,7 +11,7 @@
 @section('action-btn')
 <div class="all-button-box row d-flex justify-content-end">
     <div class="col-xl-2 col-lg-2 col-md-4 col-sm-6 col-6">
-        <a href="#" data-url="{{ route('restrict-ip.create') }}" class="btn btn-sm btn-primary" data-ajax-popup="true" data-title="{{__('Create New Restricted IP')}}">
+        <a href="#" data-url="{{ route('restrict-ip.create') }}" class="btn btn-sm btn-primary" data-ajax-popup="true" data-title="{{__('Add New IP')}}">
             <i class="ti ti-plus"></i>
         </a>
         
@@ -29,7 +29,7 @@
                     <table class="table datatable">
                             <thead>
                             <tr>
-                                <th>{{__('Restricted IP')}}</th>
+                                <th>{{__('Allowed IP')}}</th>
                                 <th>{{__('Created At')}}</th>
                                 <th width="200px">{{__('Action')}}</th>
 
@@ -45,7 +45,7 @@
                                     
                                         <td>
                                             <div class="action-btn bg-primary ms-2">
-                                                <a href="#" data-url="{{route('restrict-ip.edit',\Illuminate\Support\Facades\Crypt::encrypt($ip->id))}}" class="mx-3 btn btn-sm align-items-center" data-ajax-popup="true" data-title="{{__('Edit Restricted IP')}}">
+                                                <a href="#" data-url="{{route('restrict-ip.edit',\Illuminate\Support\Facades\Crypt::encrypt($ip->id))}}" class="mx-3 btn btn-sm align-items-center" data-ajax-popup="true" data-title="{{__('Edit IP')}}">
                                                     <i class="ti ti-pencil text-white"></i>
                                                 </a>
                                                 {{-- <a href="{{route('restrict-ip.edit',\Illuminate\Support\Facades\Crypt::encrypt($ip->id))}}" class="mx-3 btn btn-sm align-items-center" data-bs-toggle="tooltip" title="{{__('Edit')}}"

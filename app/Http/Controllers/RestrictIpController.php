@@ -63,7 +63,7 @@ class RestrictIpController extends Controller
 
             if($ip->save())
             {
-                return redirect()->route('restrict-ip.index')->with('success', __('IP Restricted Successfully.') . ((!empty($resp) && $resp['is_success'] == false && !empty($resp['error'])) ? '<br> <span class="text-danger">' . $resp['error'] . '</span>' : ''));
+                return redirect()->route('restrict-ip.index')->with('success', __('New IP Added Successfully.') . ((!empty($resp) && $resp['is_success'] == false && !empty($resp['error'])) ? '<br> <span class="text-danger">' . $resp['error'] . '</span>' : ''));
 
             }else{
                 return redirect()->back()->with('error', __('Something went wrong.'));
