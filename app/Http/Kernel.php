@@ -21,6 +21,7 @@ class Kernel extends HttpKernel
         \Illuminate\Foundation\Http\Middleware\ValidatePostSize::class,
         \App\Http\Middleware\TrimStrings::class,
         \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
+        // \App\Http\Middleware\RestrictIP::class, 
     ];
 
     /**
@@ -67,5 +68,12 @@ class Kernel extends HttpKernel
         'revalidate' => \App\Http\Middleware\RevalidateBackHistory::class,
         'pusher' => \App\Http\Middleware\pusherConfig::class,
         'checkEmployeeStatus' => \App\Http\Middleware\CheckEmployeeStatus::class,
+        'restrict.ip' => \App\Http\Middleware\RestrictIP::class,
     ];
+    
+    // protected $middlewarePriority = [
+    //     \Illuminate\Session\Middleware\StartSession::class,
+    //     \Illuminate\Auth\Middleware\Authenticate::class,
+    //     \App\Http\Middleware\RestrictIP::class, 
+    // ];
 }

@@ -110,6 +110,7 @@ use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\RazorpayPaymentController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ResignationController;
+use App\Http\Controllers\RestrictIpController;
 use App\Http\Controllers\RevenueController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SaturationDeductionController;
@@ -213,6 +214,7 @@ Route::group(
             'checkEmployeeStatus', // Check employee status middleware
             'XSS',
             'revalidate',
+            'restrict.ip'
         ],
     ], function () {
 
@@ -896,6 +898,8 @@ Route::group(['middleware' => ['verified']], function () {
     Route::resource('employee', EmployeeController::class)->middleware(['auth', 'XSS']);
 
     Route::post('employee/getdepartment', [EmployeeController::class, 'getDepartment'])->name('employee.getdepartment')->middleware(['auth', 'XSS']);
+    
+    Route::resource('restrict-ip', RestrictIpController::class)->middleware(['auth', 'XSS']);
 
     Route::resource('department', DepartmentController::class)->middleware(['auth', 'XSS']);
     Route::resource('designation', DesignationController::class)->middleware(['auth', 'XSS']);

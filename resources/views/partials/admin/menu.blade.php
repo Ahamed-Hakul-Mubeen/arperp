@@ -418,6 +418,9 @@
                                         <a href="{{ route('employee.index') }}" class="dash-link">
                                             {{ __('Employee Setup') }}
                                         </a>
+                                        <a href="{{ route('employee.index') }}" class="dash-link">
+                                            {{ __('Restrict IP') }}
+                                        </a>
                                     @endif
                                 </li>
                                 @endif
