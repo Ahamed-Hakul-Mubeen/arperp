@@ -414,14 +414,17 @@
                                         @endphp
                                         <a class="dash-link"
                                             href="{{ route('employee.show', \Illuminate\Support\Facades\Crypt::encrypt($employee->id)) }}">{{ __('Employee') }}</a>
-                                    @else
-                                        <a href="{{ route('employee.index') }}" class="dash-link">
-                                            {{ __('Employee Setup') }}
-                                        </a>
-                                        <a href="{{ route('employee.index') }}" class="dash-link">
-                                            {{ __('Restrict IP') }}
-                                        </a>
+                                        @else
+                                            <a href="{{ route('employee.index') }}" class="dash-link">
+                                                {{ __('Employee Setup') }}
+                                            </a>
+                                            
                                     @endif
+                                </li>
+                                <li class="dash-item  {{ Request::segment(1) == 'restrict-ip' ? 'active dash-trigger' : '' }}   ">
+                                    <a href="{{ url('/restrict-ip') }}" class="dash-link">
+                                        {{ __('Restrict IP') }}
+                                    </a>
                                 </li>
                                 @endif
 
