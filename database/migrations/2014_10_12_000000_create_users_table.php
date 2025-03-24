@@ -31,6 +31,7 @@ class CreateUsersTable extends Migration
             $table->integer('delete_status')->default(1);
             $table->string('mode', 10)->default('light');
             $table->boolean('dark_mode')->default(0);
+            $table->boolean('is_wfh')->default(0);
             $table->integer('is_active')->default(1);
             $table->datetime('last_login_at')->nullable();
             $table->integer('created_by')->default(0);

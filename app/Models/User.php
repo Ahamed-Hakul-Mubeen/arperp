@@ -34,6 +34,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'plan_expire_date',
         'requested_plan',
         'is_active',
+        'is_wfh',
         'is_enable_login',
         'last_login_at',
         'created_by',

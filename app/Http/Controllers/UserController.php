@@ -70,6 +70,7 @@ class UserController extends Controller
     }
     public function store(Request $request)
     {
+        // dd($request->all());
         if (\Auth::user()->can('create user')) {
             $default_language = DB::table('settings')->select('value')->where('name', 'default_language')->where('created_by', '=', \Auth::user()->creatorId())->first();
             $objUser = \Auth::user()->creatorId();
@@ -98,6 +99,10 @@ class UserController extends Controller
                         return redirect()->back()->with('error', $validator->errors()->first());
                     }
                 }
+                $is_wfh = 0;
+                if (!empty($request->is_wfh) && $request->is_wfh == 'on') {
+                    $is_wfh = 1;
+                }
                 $userpassword = $request->input('password');
                 $settings = Utility::settings();
 
@@ -119,6 +124,7 @@ class UserController extends Controller
                     $user['email_verified_at'] = date('Y-m-d H:i:s');
                 }
                 $user['is_enable_login'] = $enableLogin;
+                $user['is_wfh'] = $is_wfh;
 
                 $user->save();
 
@@ -682,7 +688,11 @@ class UserController extends Controller
                     $request['created_by'] = \Auth::user()->creatorId();
                     $request['email_verified_at'] = date('Y-m-d H:i:s');
                     $request['is_enable_login'] = $enableLogin;
-
+                    $is_wfh = 0;
+                    if (!empty($request->is_wfh) && $request->is_wfh == 'on') {
+                        $is_wfh = 1;
+                    }
+                    $request['is_wfh'] = $is_wfh;
                     $user = User::create($request->all());
                     $user->assignRole($role_r);
                     if ($request['type'] != 'client') {
@@ -798,7 +808,7 @@ class UserController extends Controller
             $user = User::findOrFail($id);
             $user->customField = CustomField::getData($user, 'user');
             $customFields = CustomField::where('created_by', '=', \Auth::user()->creatorId())->where('module', '=', 'user')->get();
-
+            // dd($user);  
             return view('user.edit', compact('user', 'roles', 'customFields'));
         } else {
             return redirect()->back();
@@ -827,7 +837,11 @@ class UserController extends Controller
                 $role = Role::findByName('company');
                 $input = $request->all();
                 $input['type'] = $role->name;
-
+                $is_wfh = 0;
+                if (!empty($request->is_wfh) && $request->is_wfh == 'on') {
+                    $is_wfh = 1;
+                }
+                $input['is_wfh'] = $is_wfh;
                 $user->fill($input)->save();
                 CustomField::saveData($user, $request->customField);
 
@@ -855,6 +869,11 @@ class UserController extends Controller
                 $role = Role::findById($request->role);
                 $input = $request->all();
                 $input['type'] = $role->name;
+                $is_wfh = 0;
+                if (!empty($request->is_wfh) && $request->is_wfh == 'on') {
+                    $is_wfh = 1;
+                }
+                $input['is_wfh'] = $is_wfh;
                 $user->fill($input)->save();
                 Utility::employeeDetailsUpdate($user->id, \Auth::user()->creatorId());
                 CustomField::saveData($user, $request->customField);

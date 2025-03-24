@@ -22,7 +22,7 @@ class RestrictIP
         {
             $restrictedIPs = RestrictedIP::where('created_by', \Auth::user()->creatorId())->pluck('ip')->toArray();
             // dd(in_array($request->ip(), $restrictedIPs),$restrictedIPs);
-            if (!in_array($request->ip(), $restrictedIPs) && Auth()->user()->type != 'super admin' && Auth()->user()->type != 'company') {
+            if (!in_array($request->ip(), $restrictedIPs) && Auth()->user()->type != 'super admin' && Auth()->user()->type != 'company' && auth()->user()->is_wfh == 0) {
                 // dd('hi');
                 return response()->view('error.ip_restricted', [], 403);
             }

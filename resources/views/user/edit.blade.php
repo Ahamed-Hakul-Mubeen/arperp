@@ -23,6 +23,13 @@
                 @enderror
             </div>
         </div>
+        <div class="col-md-5 mb-3 form-group mt-4">
+            <label for="is_wfh">{{ __('Work From Home') }}</label>
+            <div class="form-check form-switch custom-switch-v1 float-end">
+                <input type="checkbox" name="is_wfh" class="form-check-input input-primary pointer" {{ $user && $user->is_wfh == 1 ? 'checked' : '' }} value="on"  id="is_wfh">
+                <label class="form-check-label" for="is_wfh"></label>
+            </div>
+        </div>
         @if(\Auth::user()->type != 'super admin')
             <div class="form-group col-md-12">
                 {{ Form::label('role', __('User Role'),['class'=>'form-label']) }}<span class="text-danger">*</span>

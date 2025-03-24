@@ -77,6 +77,13 @@
                 @enderror
             </div>
             <div class="col-md-5 mb-3 form-group mt-4">
+                <label for="is_wfh">{{ __('Work From Home') }}</label>
+                <div class="form-check form-switch custom-switch-v1 float-end">
+                    <input type="checkbox" name="is_wfh" class="form-check-input input-primary pointer" value="on" id="is_wfh">
+                    <label class="form-check-label" for="is_wfh"></label>
+                </div>
+            </div>
+            <div class="col-md-5 mb-3 form-group mt-4">
                 <label for="password_switch">{{ __('Login is enable') }}</label>
                 <div class="form-check form-switch custom-switch-v1 float-end">
                     <input type="checkbox" name="password_switch" class="form-check-input input-primary pointer" value="on" id="password_switch">
