@@ -86,8 +86,8 @@
                                 <th>{{__('End Date')}}</th>
                                 <th>{{__('Total Days')}}</th>
                                 <th>{{__('Leave Reason')}}</th>
-                                <th>{{__('PM Approval')}}</th>
-                                <th>{{__('HR Approval')}}</th>
+                                <th>{{__('Approval')}}</th>
+                                {{-- <th>{{__('HR Approval')}}</th> --}}
                                 <th width="200px">{{__('Action')}}</th>
                             </tr>
                             </thead>
@@ -110,7 +110,7 @@
                                             <span class="p-2 px-3 rounded status_badge badge bg-warning">{{__('Pending')}}</span>
                                         @endif
                                     </td>
-                                    <td>
+                                    {{-- <td>
                                         @if($leave->hr_approval == 'Approved')
                                             <span class="p-2 px-3 rounded status_badge badge bg-success">{{__('Approved')}}</span>
                                         @elseif($leave->hr_approval == 'Rejected')
@@ -118,7 +118,7 @@
                                         @else
                                             <span class="p-2 px-3 rounded status_badge badge bg-warning">{{__('Pending')}}</span>
                                         @endif
-                                    </td>
+                                    </td> --}}
                                     <td>
                                        @can('edit leave')
                                             <div class="action-btn bg-primary ms-2">

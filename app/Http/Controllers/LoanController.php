@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Employee;
+use App\Models\EmployeeHistory;
 use App\Models\Loan;
 use App\Models\LoanOption;
 use Illuminate\Http\Request;
@@ -53,6 +54,17 @@ class LoanController extends Controller
             $loan->reason      = $request->reason;
             $loan->created_by  = \Auth::user()->creatorId();
             $loan->save();
+
+            $employee          = Employee::find($loan->employee_id);
+            $empsal  = $loan->amount * $employee->salary / 100;
+
+            $ip = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN';
+            EmployeeHistory::storeHistory(
+                $loan->employee_id,
+                "Loan Added",
+                $loan->title . " loan of " . \Auth::user()->priceFormat($loan->type == "fixed" ? $loan->amount : $empsal) . " has been created for ". $request->no_of_months . " months",
+                $ip
+            );
 
             return redirect()->back()->with('success', __('Loan  successfully created.'));
         }
@@ -127,6 +139,17 @@ class LoanController extends Controller
                 $loan->reason      = $request->reason;
                 $loan->save();
 
+                $employee          = Employee::find($loan->employee_id);
+                $empsal  = $loan->amount * $employee->salary / 100;
+
+                $ip = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN';
+                EmployeeHistory::storeHistory(
+                    $loan->employee_id,
+                    "Loan Updated",
+                    $loan->title . " loan updated to " . \Auth::user()->priceFormat($loan->type == "fixed" ? $loan->amount : $empsal) .' for '. $loan->no_of_months . " months.",
+                    $ip
+                );
+
                 return redirect()->back()->with('success', __('Loan successfully updated.'));
             }
             else
@@ -147,6 +170,17 @@ class LoanController extends Controller
             if($loan->created_by == \Auth::user()->creatorId())
             {
                 $loan->delete();
+
+                $employee          = Employee::find($loan->employee_id);
+                $empsal  = $loan->amount * $employee->salary / 100;
+
+                $ip = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN';
+                EmployeeHistory::storeHistory(
+                    $loan->employee_id,
+                    "Loan Deleted",
+                    $loan->title . " loan of " . \Auth::user()->priceFormat($loan->type == "fixed" ? $loan->amount : $empsal) . " has been deleted.",
+                    $ip
+                );
 
                 return redirect()->back()->with('success', __('Loan successfully deleted.'));
             }

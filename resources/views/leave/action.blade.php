@@ -28,7 +28,7 @@
                     <td>{{ !empty($leave->leave_reason)?$leave->leave_reason:'' }}</td>
                 </tr>
                 <tr>
-                    <th>{{ __('PM Approval') }}</th>
+                    <th>{{ __('Approval') }}</th>
                     <td>
                         @if($leave->pm_approval == 'Approved')
                             <div class="p-2 px-3 rounded status_badge badge bg-success">{{ __('Approved') }}</div>
@@ -39,7 +39,7 @@
                         @endif
                     </td>
                 </tr>
-                <tr>
+                {{-- <tr>
                     <th>{{ __('HR Approval') }}</th>
                     <td>
                         @if($leave->hr_approval == 'Approved')
@@ -50,7 +50,7 @@
                             <div class="p-2 px-3 rounded status_badge badge bg-warning">{{ __('Pending') }}</div>
                         @endif
                     </td>
-                </tr>
+                </tr> --}}
                 {{-- <tr>
                     <th>{{__('Overall Status')}}</th>
                     <td>{{ $leave->status }}</td>

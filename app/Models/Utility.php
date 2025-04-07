@@ -3069,6 +3069,7 @@ class Utility extends Model
                 'created_by' => $created_by,
             ]
         );
+        return $employee;
     }
 
     public static function employeeDetailsUpdate($user_id, $created_by)

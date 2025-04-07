@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Employee;
+use App\Models\EmployeeHistory;
 use App\Models\Leave;
 use App\Models\LeaveType;
 use App\Models\ProjectUser;
@@ -54,6 +55,13 @@ class LeaveController extends Controller
             }
             $leaves = $leaves->with(['leaveType','employees'])->get();
             $leavetypes      = LeaveType::where('created_by', '=', \Auth::user()->creatorId())->get();
+
+            if(auth()->user()->type == "Employee")
+            {
+                $ip = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN';
+                // EmployeeHistory::storeHistory(auth()->user()->id, "View", "Viewed Manage Leave", $ip);
+            }
+
             return view('leave.index', compact('leaves','leavetypes'));
         }
         else
@@ -135,6 +143,24 @@ class LeaveController extends Controller
             $leave->created_by       = \Auth::user()->creatorId();
 
             $leave->save();
+            // dd($total_leave_days);
+            $ip = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN';
+            if ($total_leave_days > 1) {
+                EmployeeHistory::storeHistory(
+                    $leave->employee_id,
+                    "Leave Requested",
+                    "Leave requested from " . date('d/m/Y', strtotime($request->start_date)) . " to " . date('d/m/Y', strtotime($request->end_date)),
+                    $ip
+                );
+            } else {
+                EmployeeHistory::storeHistory(
+                    $leave->employee_id,
+                    "Leave Requested",
+                    "Leave requested for " . date('d/m/Y', strtotime($request->start_date)),
+                    $ip
+                );
+            }
+
 
                 return redirect()->route('leave.index')->with('success', __('Leave successfully created.'));
             } else {
@@ -259,7 +285,11 @@ class LeaveController extends Controller
         $leave     = Leave::find($id);
         $employee  = Employee::find($leave->employee_id);
         $leavetype = LeaveType::find($leave->leave_type_id);
-
+        if(auth()->user()->type == "Employee")
+        {
+            $ip = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN';
+            // EmployeeHistory::storeHistory(auth()->user()->id, "View", "Viewed Leave Details", $ip);
+        }
         return view('leave.action', compact('employee', 'leavetype', 'leave'));
     }
 
@@ -293,6 +323,22 @@ class LeaveController extends Controller
                 $leave->pm_approval = 'Rejected';
                 $leave->hr_approval = 'Rejected';
                 $leave->status = 'Rejected';
+            }
+            $ip = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN';
+            if ($leave->total_leave_days > 1) {
+                EmployeeHistory::storeHistory(
+                    $leave->employee_id,
+                    'Leave request '.$request->status,
+                    "Leave request " . ucfirst($request->status) . " for " . date('d/m/Y', strtotime($leave->start_date)) . " to " . date('d/m/Y', strtotime($leave->end_date)),
+                    $ip
+                );
+            } else {
+                EmployeeHistory::storeHistory(
+                    $leave->employee_id,
+                    'Leave request '.$request->status,
+                    "Leave request " . ucfirst($request->status) . " for " . date('d/m/Y', strtotime($leave->start_date)),
+                    $ip
+                );
             }
         }
 

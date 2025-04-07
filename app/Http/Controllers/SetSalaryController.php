@@ -7,6 +7,7 @@ use App\Models\AllowanceOption;
 use App\Models\Commission;
 use App\Models\DeductionOption;
 use App\Models\Employee;
+use App\Models\EmployeeHistory;
 use App\Models\Loan;
 use App\Models\LoanOption;
 use App\Models\OtherPayment;
@@ -215,6 +216,10 @@ class SetSalaryController extends Controller
         $employee = Employee::findOrFail($id);
         $input    = $request->all();
         $employee->fill($input)->save();
+        $type = PayslipType::find($request->salary_type);
+
+        $ip = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN';
+        EmployeeHistory::storeHistory($employee->id, "Salary Updated", "Salary Updated to ".\Auth::user()->priceFormat($request->salary) .' per '. $type->name .'.', $ip);
 
         return redirect()->back()->with('success', 'Employee Salary Updated.');
     }

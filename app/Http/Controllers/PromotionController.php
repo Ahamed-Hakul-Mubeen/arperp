@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Designation;
 use App\Models\Employee;
+use App\Models\EmployeeHistory;
 use App\Models\Promotion;
 use App\Models\Utility;
 use Illuminate\Http\Request;
@@ -77,6 +78,11 @@ class PromotionController extends Controller
             $promotion->description     = $request->description;
             $promotion->created_by      = \Auth::user()->creatorId();
             $promotion->save();
+
+            $employee = Employee::find($request->employee_id);
+
+            $ip = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN';
+            EmployeeHistory::storeHistory($request->employee_id, 'Promotion', "Congratulations to ". $employee->name ." on being promoted to ".$request->promotion_title.", effective ".date('M d, Y',strtotime($request->promotion_date))."!", $ip);
 
             $setings = Utility::settings();
             if($setings['promotion_sent'] == 1)

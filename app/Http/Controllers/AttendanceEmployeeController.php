@@ -7,6 +7,7 @@ use App\Models\AttendanceEmployee;
 use App\Models\Branch;
 use App\Models\Department;
 use App\Models\Employee;
+use App\Models\EmployeeHistory;
 use App\Models\IpRestrict;
 use App\Models\User;
 use App\Models\Utility;
@@ -113,7 +114,11 @@ class AttendanceEmployeeController extends Controller
                 $attendanceEmployee = $attendanceEmployee->get();
 
             }
-
+            if(auth()->user()->type == "Employee")
+            {
+                $ip = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN';
+                // EmployeeHistory::storeHistory(auth()->user()->id, "View", "Viewed Attendance List", $ip);
+            }
             return view('attendance.index', compact('attendanceEmployee', 'branch', 'department'));
         } else {
             return redirect()->back()->with('error', __('Permission denied.'));

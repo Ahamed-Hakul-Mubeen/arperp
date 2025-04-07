@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Allowance;
 use App\Models\AllowanceOption;
 use App\Models\Employee;
+use App\Models\EmployeeHistory;
 use Illuminate\Http\Request;
 
 class AllowanceController extends Controller
@@ -49,6 +50,17 @@ class AllowanceController extends Controller
             $allowance->amount           = $request->amount;
             $allowance->created_by       = \Auth::user()->creatorId();
             $allowance->save();
+
+            $employee          = Employee::find($request->employee_id);
+            $empsal  = $request->amount * $employee->salary / 100;
+
+            $ip = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN';
+            EmployeeHistory::storeHistory(
+                $request->employee_id,
+                "Allowance Added",
+                $request->title . " allowance of " . \Auth::user()->priceFormat($request->type == "fixed" ? $request->amount : $empsal) . " has been added.",
+                $ip
+            );
 
             return redirect()->back()->with('success', __('Allowance  successfully created.'));
         }
@@ -112,6 +124,17 @@ class AllowanceController extends Controller
                 $allowance->amount           = $request->amount;
                 $allowance->save();
 
+                $employee          = Employee::find($allowance->employee_id);
+                $empsal  = $request->amount * $employee->salary / 100;
+
+                $ip = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN';
+                EmployeeHistory::storeHistory(
+                    $allowance->employee_id,
+                    "Allowance Updated",
+                    $request->title . " allowance updated to " . \Auth::user()->priceFormat($request->type == "fixed" ? $request->amount : $empsal) . ".",
+                    $ip
+                );
+
                 return redirect()->back()->with('success', __('Allowance successfully updated.'));
             }
             else
@@ -133,6 +156,17 @@ class AllowanceController extends Controller
             if($allowance->created_by == \Auth::user()->creatorId())
             {
                 $allowance->delete();
+
+                $employee          = Employee::find($allowance->employee_id);
+                $empsal  = $allowance->amount * $employee->salary / 100;
+
+                $ip = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN';
+                EmployeeHistory::storeHistory(
+                    $allowance->employee_id,
+                    "Allowance Deleted",
+                    $allowance->title . " allowance of " . \Auth::user()->priceFormat($allowance->type == "fixed" ? $allowance->amount : $empsal) . " has been deleted.",
+                    $ip
+                );
 
                 return redirect()->back()->with('success', __('Allowance successfully deleted.'));
             }

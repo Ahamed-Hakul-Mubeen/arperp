@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Commission;
 use App\Models\Employee;
+use App\Models\EmployeeHistory;
 use Illuminate\Http\Request;
 
 class CommissionController extends Controller
@@ -41,6 +42,17 @@ class CommissionController extends Controller
             $commission->amount      = $request->amount;
             $commission->created_by  = \Auth::user()->creatorId();
             $commission->save();
+
+            $employee          = Employee::find($request->employee_id);
+            $empsal  = $request->amount * $employee->salary / 100;
+
+            $ip = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN';
+            EmployeeHistory::storeHistory(
+                $request->employee_id,
+                "Commission Added",
+                $request->title . " commission of " . \Auth::user()->priceFormat($request->type == "fixed" ? $request->amount : $empsal) . " has been added.",
+                $ip
+            );
 
             return redirect()->back()->with('success', __('Commission  successfully created.'));
         }
@@ -103,6 +115,17 @@ class CommissionController extends Controller
                 $commission->amount = $request->amount;
                 $commission->save();
 
+                $employee          = Employee::find($commission->employee_id);
+                $empsal  = $request->amount * $employee->salary / 100;
+
+                $ip = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN';
+                EmployeeHistory::storeHistory(
+                    $commission->employee_id,
+                    "Commission Updated",
+                    $request->title . " commission updated to " . \Auth::user()->priceFormat($request->type == "fixed" ? $request->amount : $empsal) . ".",
+                    $ip
+                );
+
                 return redirect()->back()->with('success', __('Commission successfully updated.'));
             }
             else
@@ -125,6 +148,17 @@ class CommissionController extends Controller
             {
 
                 $commission->delete();
+
+                $employee          = Employee::find($commission->employee_id);
+                $empsal  = $commission->amount * $employee->salary / 100;
+
+                $ip = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN';
+                EmployeeHistory::storeHistory(
+                    $commission->employee_id,
+                    "Commission Deleted",
+                    $commission->title . " commission of " . \Auth::user()->priceFormat($commission->type == "fixed" ? $commission->amount : $empsal) . " has been deleted.",
+                    $ip
+                );
 
                 return redirect()->back()->with('success', __('Commission successfully deleted.'));
             }

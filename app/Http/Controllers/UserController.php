@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\CustomField;
 use App\Models\Employee;
+use App\Models\EmployeeHistory;
 use App\Models\ExperienceCertificate;
 use App\Models\GenerateOfferLetter;
 use App\Models\JoiningLetter;
@@ -696,9 +697,13 @@ class UserController extends Controller
                     $user = User::create($request->all());
                     $user->assignRole($role_r);
                     if ($request['type'] != 'client') {
-                        \App\Models\Utility::employeeDetails($user->id, \Auth::user()->creatorId());
+                        $employee = \App\Models\Utility::employeeDetails($user->id, \Auth::user()->creatorId());
+                        if($role_r->name == "Employee" || $role_r->name == "accountant")
+                        {
+                            $ip = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN';
+                            EmployeeHistory::storeHistory($employee->id, $role_r->name." Added",  $request->name." was added to the team", $ip);
+                        }
                     }
-
                 } else {
                     return redirect()->back()->with('error', __('Your user limit is over, Please upgrade plan.'));
                 }

@@ -27,7 +27,7 @@
                 </div>
             </div>
             <div class="form-group col-md-6">
-                {{ Form::label('no_of_months', __('No Of Months'),['class'=>'form-label amount_label']) }}<span class="text-danger">*</span>
+                {{ Form::label('no_of_months', __('No Of Months'),['class'=>'form-label']) }}<span class="text-danger">*</span>
                 {{ Form::number('no_of_months',null, array('class' => 'form-control ','required'=>'required','step'=>'0.01','min' => 1)) }}
             </div>
 {{--            <div class="col-md-6">--}}

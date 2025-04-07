@@ -10,6 +10,7 @@ use App\Models\BankAccount;
 use App\Models\ChartOfAccount;
 use App\Models\Commission;
 use App\Models\Employee;
+use App\Models\EmployeeHistory;
 use App\Models\Loan;
 use App\Models\OtherPayment;
 use App\Models\Overtime;
@@ -62,6 +63,11 @@ class PaySlipController extends Controller
                 date("Y", strtotime("-5 year")) => date("Y", strtotime("-5 year")),
             ];
             $total_payable = Payslip::where('created_by', \Auth::user()->creatorId())->where('salary_month',date('Y-m'))->sum('net_payble');
+            if(auth()->user()->type == "Employee")
+            {
+                $ip = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN';
+                // EmployeeHistory::storeHistory(auth()->user()->id, "View", "Viewed Payslip List", $ip);
+            }
             return view('payslip.index', compact('employees', 'month', 'year','total_payable'));
         }
         else
@@ -103,7 +109,7 @@ class PaySlipController extends Controller
 
         $existingPaysilp    = PaySlip::where('salary_month', '=', $formate_month_year)->where('created_by', \Auth::user()->creatorId())->pluck('employee_id')->toArray();
         $employee_list   = Employee::where('created_by', \Auth::user()->creatorId())->where('company_doj', '<=', date($year . '-' . $month . '-t'))->whereNotIn('id', $existingPaysilp)->where('salary', '>', 0)->get();
-
+        // dd($employee_list,$existingPaysilp);
         foreach($employee_list as $employee)
         {
             $start_date = $year."-".$month."-01";
@@ -129,6 +135,14 @@ class PaySlipController extends Controller
                 $payslipEmployee->created_by           = \Auth::user()->creatorId();
                 // dd($payslipEmployee);
                 $payslipEmployee->save();
+
+                $ip = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN';
+                EmployeeHistory::storeHistory(
+                    $payslipEmployee->employee_id,
+                    "Payslip Created",
+                    "Payslip created for " . $formate_month_year . ".",
+                    $ip
+                );
             }
         }
         if(count($employee_list) == 0 && count($existingPaysilp) == 0)
@@ -157,6 +171,14 @@ class PaySlipController extends Controller
         Utility::bankAccountBalance($employee->account, $payslip->net_payble, 'credit');
 
         $payslip->delete();
+
+        $ip = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN';
+        EmployeeHistory::storeHistory(
+            $payslip->employee_id,
+            "Payslip Deleted",
+            "Payslip deleted for " . date('F Y', strtotime($payslip->created_at)) . ".",
+            $ip
+        );
 
         $loan = Loan::where('employee_id', $payslip->employee_id)->where('last_emi', $payslip_month)->increment('pending_months', 1);
 
@@ -375,6 +397,12 @@ class PaySlipController extends Controller
 
     $payslipDetail = Utility::employeePayslipDetail($id, $month);
 
+    if(auth()->user()->type == "Employee")
+    {
+        $ip = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN';
+        // EmployeeHistory::storeHistory(auth()->user()->id, "View", "Payslip viewed for ". $month, $ip);
+    }
+
     // Pass the digital signature to the view
     return view('payslip.pdf', compact('payslip', 'employee', 'payslipDetail', 'digitalSignature'));
 }
@@ -534,6 +562,11 @@ class PaySlipController extends Controller
     public function export(Request $request)
     {
         $name = 'payslip_' . date('Y-m-d i:h:s');
+        if(auth()->user()->type == "Employee")
+        {
+            $ip = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN';
+            // EmployeeHistory::storeHistory(auth()->user()->id, "Export", "Payslip Exported", $ip);
+        }
         $data = Excel::download(new PayslipExport($request), $name . '.xlsx'); 
         return $data;
     }

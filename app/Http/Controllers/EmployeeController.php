@@ -10,6 +10,7 @@ use App\Models\Department;
 use App\Models\Designation;
 use App\Models\Document;
 use App\Models\Employee;
+use App\Models\EmployeeHistory;
 use App\Models\EmployeeDocument;
 use App\Models\ExperienceCertificate;
 use App\Models\JoiningLetter;
@@ -406,7 +407,7 @@ class EmployeeController extends Controller
 
     }
 
-    public function show($id)
+    public function show(Request $request, $id)
     {
 
         if(\Auth::user()->can('view employee'))
@@ -426,7 +427,11 @@ class EmployeeController extends Controller
             $employee     = Employee::where('id',$empId)->first();
 
             $employeesId  = \Auth::user()->employeeIdFormat(!empty($employee) ? $employee->employee_id : '');
-
+            $ip = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN';
+            if(auth()->user()->type == "Employee")
+            {
+                // EmployeeHistory::storeHistory(auth()->user()->id, "View", "Viewed Employee Details", $ip);
+            }
 
             return view('employee.show', compact('employee', 'employeesId', 'branches', 'departments', 'designations', 'documents'));
         }
@@ -563,6 +568,11 @@ class EmployeeController extends Controller
             'end_time' => !empty($settings['company_end_time'])?$settings['company_end_time']:'',
             'total_hours' => $result,
         ];
+        if(auth()->user()->type == "Employee")
+        {
+            $ip = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN';
+            // EmployeeHistory::storeHistory(auth()->user()->id, "Download", "Downloaded Joining Letter as PDF", $ip);
+        }
 
         $joiningletter->content = JoiningLetter::replaceVariable($joiningletter->content, $obj);
         return view('employee.template.joiningletterpdf', compact('joiningletter','employees'));
@@ -598,6 +608,12 @@ class EmployeeController extends Controller
 
         ];
         // dd($obj);
+        if(auth()->user()->type == "Employee")
+        {
+            $ip = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN';
+            // EmployeeHistory::storeHistory(auth()->user()->id, "Download", "Downloaded Joining Letter as DOC", $ip);
+        }
+
         $joiningletter->content = JoiningLetter::replaceVariable($joiningletter->content, $obj);
         return view('employee.template.joiningletterdocx', compact('joiningletter','employees'));
 
@@ -635,7 +651,11 @@ class EmployeeController extends Controller
         }else{
             return redirect()->back()->with('error', __('Termination date is required.'));
         }
-
+        if(auth()->user()->type == "Employee")
+        {
+            $ip = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN';
+            // EmployeeHistory::storeHistory(auth()->user()->id, "Download", "Downloaded Experience Certificate as PDF", $ip);
+        }
 
         $experience_certificate->content = ExperienceCertificate::replaceVariable($experience_certificate->content, $obj);
         return view('employee.template.ExpCertificatepdf', compact('experience_certificate','employees'));
@@ -671,6 +691,11 @@ class EmployeeController extends Controller
         }else{
             return redirect()->back()->with('error', __('Termination date is required.'));
         }
+        if(auth()->user()->type == "Employee")
+        {
+            $ip = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN';
+            // EmployeeHistory::storeHistory(auth()->user()->id, "Download", "Downloaded Experience Certificate as DOC", $ip);
+        }
 
         $experience_certificate->content = ExperienceCertificate::replaceVariable($experience_certificate->content, $obj);
         return view('employee.template.ExpCertificatedocx', compact('experience_certificate','employees'));
@@ -696,6 +721,12 @@ class EmployeeController extends Controller
             'app_name' => env('APP_NAME'),
         ];
 
+        if(auth()->user()->type == "Employee")
+        {
+            $ip = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN';
+            // EmployeeHistory::storeHistory(auth()->user()->id, "Download", "Downloaded NOC Certificate as PDF", $ip);
+        }
+
         $noc_certificate->content=NOC::replaceVariable($noc_certificate->content, $obj);
         return view('employee.template.Nocpdf', compact('noc_certificate','employees'));
 
@@ -719,6 +750,11 @@ class EmployeeController extends Controller
             'designation' => !empty($employees->designation->name)?$employees->designation->name:'',
             'app_name' => env('APP_NAME'),
         ];
+        if(auth()->user()->type == "Employee")
+        {
+            $ip = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN';
+            // EmployeeHistory::storeHistory(auth()->user()->id, "Download", "Downloaded NOC Certificate as DOC", $ip);
+        }
 
         $noc_certificate->content=NOC::replaceVariable($noc_certificate->content, $obj);
         return view('employee.template.Nocdocx', compact('noc_certificate','employees'));

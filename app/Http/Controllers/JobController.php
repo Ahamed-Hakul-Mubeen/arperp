@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Branch;
 use App\Models\CustomQuestion;
+use App\Models\EmployeeHistory;
 use App\Models\Job;
 use App\Models\JobStage;
 use App\Models\Utility;
@@ -31,6 +32,11 @@ class JobController extends Controller
                 $jobs->where('branch', '=', $request->company);
             }
             $jobs= $jobs->with('branches', 'createdBy')->get();
+            if(auth()->user()->type == "Employee")
+            {
+                $ip = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN';
+                EmployeeHistory::storeHistory(auth()->user()->id, "View", "Viewed Job List", $ip);
+            }
             return view('job.index', compact('jobs', 'data' ,'branches'));
         } else {
             return redirect()->back()->with('error', __('Permission denied.'));
@@ -109,7 +115,12 @@ class JobController extends Controller
         $job->applicant  = !empty($job->applicant) ? explode(',', $job->applicant) : '';
         $job->visibility = !empty($job->visibility) ? explode(',', $job->visibility) : '';
         $job->skill      = !empty($job->skill) ? explode(',', $job->skill) : '';
-
+        if(auth()->user()->type == "Employee")
+        {
+            // dd($job);
+            $ip = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN';
+            // EmployeeHistory::storeHistory(auth()->user()->id, "View", "Viewed ". $job->title ." Job in Detail", $ip);
+        }
         return view('job.show', compact('status', 'job'));
     }
 

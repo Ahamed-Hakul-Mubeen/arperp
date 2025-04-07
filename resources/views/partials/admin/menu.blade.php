@@ -421,11 +421,18 @@
                                             
                                     @endif
                                 </li>
+                                @if (\Auth::user()->type == 'company' || \Auth::user()->type == 'super admin')
                                 <li class="dash-item  {{ Request::segment(1) == 'restrict-ip' ? 'active dash-trigger' : '' }}   ">
                                     <a href="{{ url('/restrict-ip') }}" class="dash-link">
                                         {{ __('Restrict IP') }}
                                     </a>
                                 </li>
+                                <li class="dash-item  {{ Request::segment(1) == 'employee/history/list' ? 'active dash-trigger' : '' }}   ">
+                                    <a href="{{ url('/employee/history/list') }}" class="dash-link">
+                                        {{ __('Employee History') }}
+                                    </a>
+                                </li>
+                                @endif
                                 @endif
 
                                 @if (Gate::check('manage set salary') || Gate::check('manage pay slip'))

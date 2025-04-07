@@ -49,6 +49,7 @@ use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\DucumentUploadController;
 use App\Http\Controllers\EmailTemplateController;
 use App\Http\Controllers\EmployeeController;
+use App\Http\Controllers\EmployeeHistoryController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\FlutterwavePaymentController;
@@ -898,6 +899,10 @@ Route::group(['middleware' => ['verified']], function () {
     Route::resource('employee', EmployeeController::class)->middleware(['auth', 'XSS']);
 
     Route::post('employee/getdepartment', [EmployeeController::class, 'getDepartment'])->name('employee.getdepartment')->middleware(['auth', 'XSS']);
+
+    // employee History
+    Route::get('employee/history/list', [EmployeeHistoryController::class, 'index'])->name('employee.history')->middleware(['auth', 'XSS']);
+    Route::get('employee/history/view/{id}', [EmployeeHistoryController::class, 'view'])->name('employee.history.view')->middleware(['auth', 'XSS']);
     
     Route::resource('restrict-ip', RestrictIpController::class)->middleware(['auth', 'XSS']);
 
