@@ -29,4 +29,12 @@ class EmployeeHistoryController extends Controller
         // dd($employee_history);
         return view('employee-history.timeline', compact('employee','employee_history'));
     }
+    public function tableView($id)
+    {
+        $id = Crypt::decrypt($id);
+        $employee = Employee::find($id);
+        $employee_history = EmployeeHistory::with('employee')->where('employee_id', $id)->get();
+        // dd($employee_history);
+        return view('employee-history.table', compact('employee','employee_history'));
+    }
 }

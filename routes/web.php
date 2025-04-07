@@ -903,6 +903,7 @@ Route::group(['middleware' => ['verified']], function () {
     // employee History
     Route::get('employee/history/list', [EmployeeHistoryController::class, 'index'])->name('employee.history')->middleware(['auth', 'XSS']);
     Route::get('employee/history/view/{id}', [EmployeeHistoryController::class, 'view'])->name('employee.history.view')->middleware(['auth', 'XSS']);
+    Route::get('employee/history/table/{id}', [EmployeeHistoryController::class, 'tableView'])->name('employee.history.table.view')->middleware(['auth', 'XSS']);
     
     Route::resource('restrict-ip', RestrictIpController::class)->middleware(['auth', 'XSS']);
 

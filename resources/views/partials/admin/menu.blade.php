@@ -407,7 +407,7 @@
                             <ul class="dash-submenu">
                                 @if(Gate::check('manage employee'))
                                 <li
-                                    class="dash-item  {{ Request::segment(1) == 'employee' ? 'active dash-trigger' : '' }}   ">
+                                    class="dash-item  {{ Request::segment(1) == 'employee' && Request::segment(1) != 'employee/history'? 'active dash-trigger' : '' }}   ">
                                     @if (\Auth::user()->type == 'Employee')
                                         @php
                                             $employee = App\Models\Employee::where('user_id', \Auth::user()->id)->first();
@@ -427,7 +427,7 @@
                                         {{ __('Restrict IP') }}
                                     </a>
                                 </li>
-                                <li class="dash-item  {{ Request::segment(1) == 'employee/history/list' ? 'active dash-trigger' : '' }}   ">
+                                <li class="dash-item  {{ Request::segment(1) == 'employee/history' ? 'active dash-trigger' : '' }}   ">
                                     <a href="{{ url('/employee/history/list') }}" class="dash-link">
                                         {{ __('Employee History') }}
                                     </a>
