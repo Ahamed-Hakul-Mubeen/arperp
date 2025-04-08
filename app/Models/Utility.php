@@ -4,6 +4,8 @@ namespace App\Models;
 
 use App\Mail\CommonEmailTemplate;
 use App\Models\TransactionLines;
+use App\Models\Employee;
+use App\Models\WorkShift;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use Illuminate\Database\Eloquent\Model;
@@ -63,6 +65,7 @@ class Utility extends Model
 
     public static function settings()
     {
+        $workShift = "";
         if (\Auth::check()) {
             $data = Utility::getSettingById(\Auth::user()->creatorId());
 
@@ -73,7 +76,16 @@ class Utility extends Model
         } else {
             $data = Utility::getSetting();
         }
-
+        if(Auth::check())
+        {
+            $employee = Employee::where('user_id',auth()->user()->id)->first();
+            if(isset($employee))
+            {
+                $workShift = WorkShift::whereDate('start_date', '<=', now())->whereDate('end_date', '>=', now())->whereHas('employees', function ($query) use ($employee) {
+                    $query->where('work_shift_employees.employee_id', $employee->id);  // Specify the pivot table
+                })->first();
+            }
+        }
         $settings = [
             "site_currency" => "USD",
             "site_currency_symbol" => "$",
@@ -126,9 +138,9 @@ class Utility extends Model
             "bug_prefix" => "#ISSUE",
             'title_text' => '',
             'footer_text' => '',
-            "company_start_time" => "09:00",
-            "company_end_time" => "18:00",
-            "break_time" => "90",
+            "company_start_time" => isset($workShift) && isset($workShift->start_time) ? $workShift->start_time :"09:00",
+            "company_end_time" => isset($workShift) && isset($workShift->end_time) ? $workShift->end_time :"18:00",
+            "break_time" => isset($workShift) && isset($workShift->break_time) ? $workShift->break_time :"90",
             'gdpr_cookie' => 'off',
             "interval_time" => "",
             "zoom_apikey" => "",
@@ -280,8 +292,17 @@ class Utility extends Model
 
     public static function settingsById($user_id)
     {
+        $workShift = "";
         $data = Utility::getSettingById($user_id);
-
+        $employee = Employee::where('user_id',$user_id)->first();
+        // dd($user_id, $employee);
+        if(isset($employee))
+        {
+            $workShift = WorkShift::whereDate('start_date', '<=', now())->whereDate('end_date', '>=', now())->whereHas('employees', function ($query) use ($employee) {
+                $query->where('work_shift_employees.employee_id', $employee->id);  // Specify the pivot table
+            })->first();
+        }
+        
         $settings = [
             "site_currency" => "USD",
             "site_currency_symbol" => "$",
@@ -332,9 +353,9 @@ class Utility extends Model
             "bug_prefix" => "#ISSUE",
             'title_text' => '',
             'footer_text' => '',
-            "company_start_time" => "09:00",
-            "company_end_time" => "18:00",
-            "break_time" => "90",
+            "company_start_time" => isset($workShift) && isset($workShift->start_time) ? $workShift->start_time :"09:00",
+            "company_end_time" => isset($workShift) && isset($workShift->end_time) ? $workShift->end_time :"18:00",
+            "break_time" => isset($workShift) && isset($workShift->break_time) ? $workShift->break_time :"90",
             'gdpr_cookie' => 'off',
             "interval_time" => "",
             "zoom_apikey" => "",

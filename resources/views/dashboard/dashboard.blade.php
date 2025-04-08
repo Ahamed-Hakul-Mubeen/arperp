@@ -99,128 +99,161 @@
     <li class="breadcrumb-item">{{ __('HRM') }}</li>
 @endsection
 @php
-    // dd(date_default_timezone_get());
-    use Carbon\Carbon;
-    $setting = \App\Models\Utility::settings();
+use Carbon\Carbon;
+$setting = \App\Models\Utility::settings();
 
-    if (\Auth::user()->type != 'client' && \Auth::user()->type != 'company') {
-        $employeeAttendance_clock_in = '00:00:00';
-        $employeeAttendance_clock_out = '00:00:00';
-        $employeeAttendance_total_break_duration = '00:00:00';
-        $count = count($employeeAttendance);
-        $totalBreakDurationInSeconds = $employeeAttendance->sum(function ($attendance) {
-            if (is_null($attendance->total_break_duration)) {
-                return 0; 
-            }
+if (\Auth::user()->type != 'client' && \Auth::user()->type != 'company') {
+    $employeeAttendance_clock_in = '00:00:00';
+    $employeeAttendance_clock_out = '00:00:00';
+    $employeeAttendance_total_break_duration = '00:00:00';
+    $count = count($employeeAttendance);
 
-            return Carbon::parse($attendance->total_break_duration)->secondsSinceMidnight();
-        });
+    // Calculate total break duration in seconds
+    $totalBreakDurationInSeconds = $employeeAttendance->sum(function ($attendance) {
+        return is_null($attendance->total_break_duration) ? 0 : Carbon::parse($attendance->total_break_duration)->secondsSinceMidnight();
+    });
 
-        $total_break = gmdate('H:i:s', $totalBreakDurationInSeconds);
-        $employeeAttendance_clock_in = count($employeeAttendance) > 0 && !empty($employeeAttendance[0]->clock_in)
-            ? $employeeAttendance[0]->clock_in
-            : '00:00:00';
-        $employeeAttendance_total_break_duration = count($employeeAttendance) > 0 && !empty($total_break > 0)
-            ? $total_break
-            : '00:00:00';
+    $total_break = gmdate('H:i:s', $totalBreakDurationInSeconds);
+    $employeeAttendance_clock_in = count($employeeAttendance) > 0 && !empty($employeeAttendance[0]->clock_in) ? $employeeAttendance[0]->clock_in : '00:00:00';
+    $employeeAttendance_clock_out = count($employeeAttendance) > 0 && !empty($employeeAttendance[0]->clock_out) ? $employeeAttendance[0]->clock_out : '00:00:00';
+    $employeeAttendance_total_break_duration = count($employeeAttendance) > 0 && !empty($total_break > 0) ? $total_break : '00:00:00';
 
-        $break_time = $setting['break_time'];
-        //dd($employeeAttendance_total_break_duration, $employeeAttendance_clock_in);
-        // Find total hour in Office
-        $start_date = new DateTime($officeTime['startTime']);
-        $since_start = $start_date->diff(new DateTime($officeTime['endTime']));
-        $since_start_h = $since_start->h < 10 ? '0' . $since_start->h : $since_start->h;
-        $since_start_i = $since_start->i < 10 ? '0' . $since_start->i : $since_start->i;
-        // Find total worked hour
-        if ($employeeAttendance_clock_in != '00:00:00') {
-            $clock_in = new DateTime($employeeAttendance_clock_in);
-            $worked_hour = $clock_in->diff(new DateTime(date('H:i:s')));
-            $worked_h = $worked_hour->h < 10 ? '0' . $worked_hour->h : $worked_hour->h;
-            $worked_i = $worked_hour->i < 10 ? '0' . $worked_hour->i : $worked_hour->i;
-            $total_worked_hour = $worked_h . ':' . $worked_i;
-        } else {
-            $total_worked_hour = '00:00:00';
-            $worked_h = '00';
-            $worked_i = '00';
-        }
+    // Break time from settings
+    $break_time = $setting['break_time'];
 
-        // dd($since_start_h, $since_start_i);
+    // Find total office hours (start to end time)
+    $start_date = new DateTime($officeTime['startTime']);
+    $since_start = $start_date->diff(new DateTime($officeTime['endTime']));
+    $since_start_h = $since_start->h < 10 ? '0' . $since_start->h : $since_start->h;
+    $since_start_i = $since_start->i < 10 ? '0' . $since_start->i : $since_start->i;
 
-        // Find Real work hour
-        $break_duration_arr = explode(":", $employeeAttendance_total_break_duration);
-        $real_worked_hour = date('H:i', strtotime($total_worked_hour.' - ' . $break_duration_arr[0] . ' hour, -' . $break_duration_arr[1] . ' minutes'));
+    // Check if the user has clocked out
+    if ($employeeAttendance_clock_in != '00:00:00') {
+        // The user hasn't clocked out, so calculate worked hours in real-time
+        $clock_in = new DateTime($employeeAttendance_clock_in);
+        $worked_hour = $clock_in->diff(new DateTime(date('H:i:s')));
+        $worked_h = $worked_hour->h < 10 ? '0' . $worked_hour->h : $worked_hour->h;
+        $worked_i = $worked_hour->i < 10 ? '0' . $worked_hour->i : $worked_hour->i;
+        $total_worked_hour = $worked_h . ':' . $worked_i;
+    } 
+    else {
+        $total_worked_hour = '00:00:00';
+        $worked_h = '00';
+        $worked_i = '00';
+    }
+    // Real work hour after subtracting break duration
+    $break_duration_arr = explode(":", $employeeAttendance_total_break_duration);
+    $real_worked_hour = date('H:i', strtotime($total_worked_hour . ' - ' . $break_duration_arr[0] . ' hour, -' . $break_duration_arr[1] . ' minutes'));
 
         $real_worked_arr = explode(':', $real_worked_hour);
         $real_worked_h = $real_worked_arr[0];
         $real_worked_i = $real_worked_arr[1];
+        
+        // WorkShift query to check shift type (Regular or Scheduled)
+        // Fetch WorkShift for the current employee
+        $user = Auth::user();
+        $emp = \App\Models\Employee::where('user_id', '=', $user->id)->first();
 
-        // Find Balance
+        // Fetch the employee's work shift
+        $workShift = \App\Models\WorkShift::whereHas('employees', function ($query) use ($emp) {
+            $query->where('work_shift_employees.employee_id', $emp->id);  // Specify the pivot table
+        })->first();
 
-        $total_schedule_min = 60 * $since_start_h + $since_start_i;
-        // dd($total_schedule_min);
-        $total_schedule_work_min = $total_schedule_min - $break_time;
+        // Get the current day of the week (e.g., Monday, Tuesday, etc.)
+        $currentDay = strtolower(now()->format('l')); // Returns day in lowercase (e.g., 'monday', 'tuesday')
 
-        $total_schedule_work_hour = $total_schedule_work_min / 60;
-        $schedule_work_hour_arr = explode('.', $total_schedule_work_hour);
+        if ($workShift && ($workShift->shift_type == 'regular' || $workShift->shift_type == 'scheduled')) {
+            // WorkShift table data is used to subtract break time
 
-        // dd($schedule_work_hour_arr);
+    // For "Scheduled" shifts, check the current day and use that day's start and end times
+            if ($workShift->shift_type == 'scheduled') {
+                // Fetch the start and end times for the current day
+                $start_time_column = "{$currentDay}_start_time"; // E.g., 'monday_start_time'
+                $end_time_column = "{$currentDay}_end_time"; // E.g., 'monday_end_time'
 
-        $schedule_work_h = $schedule_work_hour_arr[0];
-        $schedule_work_i = isset($schedule_work_hour_arr[1]) ? ($schedule_work_hour_arr[1] * 60) : 0;
-        $schedule_work_h = $schedule_work_h < 10 ? '0' . $schedule_work_h : $schedule_work_h;
+                // Get the start and end times for the current day
+                $start_time_value = $workShift->$start_time_column;
+                $end_time_value = $workShift->$end_time_column;
 
-        if($schedule_work_i>60)
-        {
-            $schedule_work_i = substr($schedule_work_i, 0, 2) . '.' . substr($schedule_work_i, -4, 2);
-            $schedule_work_i = round($schedule_work_i);
-        }
+                if ($start_time_value && $end_time_value) {
+                    // Convert times to DateTime objects
+                    $start_time = new DateTime($start_time_value);
+                    $end_time = new DateTime($end_time_value);
+                } else {
+                    // If no start or end time is set for this day, return a default value
+                    $balance_work_hour = "00:00"; // Default if no work shift for today
+                    return;
+                }
+            } else {
+                // For "Regular" shifts, use the regular start and end times
+                $start_time = new DateTime($workShift->start_time);
+                $end_time = new DateTime($workShift->end_time);
+            }
 
-        $schedule_work_i = $schedule_work_i < 10 ? '0' . $schedule_work_i : $schedule_work_i;
+    // Calculate total scheduled work duration in minutes
+            $worked_duration = $start_time->diff($end_time);
+            $worked_duration_in_minutes = ($worked_duration->h * 60) + $worked_duration->i;
 
-        if($schedule_work_h.":".$schedule_work_i > $real_worked_h.":".$real_worked_i)
-        {
-                $balane_work_hour = date(
+            // Subtract break time (in minutes) from the scheduled time
+            $worked_with_break_time = $worked_duration_in_minutes - $workShift->break_time; // Subtracting break time
+
+            // Calculate real worked time in minutes (assuming $real_worked_hour is available)
+            $real_worked_time_in_minutes = ($real_worked_hour ? explode(':', $real_worked_hour)[0] * 60 : 0) 
+                                        + ($real_worked_hour ? explode(':', $real_worked_hour)[1] : 0);
+
+            // Calculate the final balance in minutes
+            $final_balance_minutes = $worked_with_break_time - $real_worked_time_in_minutes;
+
+            // Convert back to hours and minutes format
+            $balance_work_hour = ($final_balance_minutes < 0) ? "00:00" : gmdate('H:i', $final_balance_minutes * 60); // Balance after subtraction
+       
+
+        } else {
+            // Older functionality if the shift type is not Regular or Scheduled
+            $total_schedule_min = 60 * $since_start_h + $since_start_i;
+            $total_schedule_work_min = $total_schedule_min - $break_time;
+
+            $total_schedule_work_hour = $total_schedule_work_min / 60;
+            $schedule_work_hour_arr = explode('.', $total_schedule_work_hour);
+
+            $schedule_work_h = $schedule_work_hour_arr[0];
+            $schedule_work_i = isset($schedule_work_hour_arr[1]) ? ($schedule_work_hour_arr[1] * 60) : 0;
+            $schedule_work_h = $schedule_work_h < 10 ? '0' . $schedule_work_h : $schedule_work_h;
+
+            if ($schedule_work_i > 60) {
+                $schedule_work_i = substr($schedule_work_i, 0, 2) . '.' . substr($schedule_work_i, -4, 2);
+                $schedule_work_i = round($schedule_work_i);
+            }
+
+            $schedule_work_i = $schedule_work_i < 10 ? '0' . $schedule_work_i : $schedule_work_i;
+
+            if ($schedule_work_h . ":" . $schedule_work_i > $real_worked_h . ":" . $real_worked_i) {
+                $balance_work_hour = date(
                     'H:i',
                     strtotime(
-                        $schedule_work_h .
-                            ':' .
-                            $schedule_work_i .
-                            ':00 - ' .
-                            $real_worked_h .
-                            ' hour, -' .
-                            $real_worked_i .
-                            ' minutes',
-                    ),
+                        $schedule_work_h . ':' . $schedule_work_i . ':00 - ' .
+                        $real_worked_h . ' hour, -' . $real_worked_i . ' minutes'
+                    )
                 );
+            } else {
+                $balance_work_hour = "00:00";
                 if($employeeAttendance_clock_out == "00:00:00") {
-                    $over_time = "00:00";
+                    $over_time = date(
+                            'H:i',
+                            strtotime(
+                                $real_worked_h . ':' . $real_worked_i . ':00 - ' .
+                                $schedule_work_h . ' hour, -' . $schedule_work_i . ' minutes'
+                            )
+                        );
                 } else {
                     $over_time = $employeeAttendance_clock_out;
                 }
-        }
-        else {
-            $balane_work_hour = "00:00";
-            if($employeeAttendance_clock_out == "00:00:00") {
-                $over_time = date(
-                        'H:i',
-                        strtotime(
-                            $real_worked_h .
-                                ':' .
-                                $real_worked_i .
-                                ':00 - ' .
-                                $schedule_work_h .
-                                ' hour, -' .
-                                $schedule_work_i .
-                                ' minutes',
-                        ),
-                    );
-            } else {
-                $over_time = $employeeAttendance_clock_out;
             }
         }
+        
     }
-
 @endphp
+
 @section('content')
     <style>
         .my-text-bold {
@@ -307,6 +340,7 @@
                                     
                                         if(isset($employeeAttendance[0]->clock_in))
                                         {
+                                            // dd($officeTime);
                                             if($officeTime['startTime'].":00" >= $employeeAttendance[0]->clock_in)
                                             {
                                                 echo '<p class="my-text-success pb-0-5">You clocked in at  '.date("h:i A", strtotime($employeeAttendance[0]->clock_in));
@@ -328,6 +362,7 @@
                                             }
                                             else
                                             {
+                                                // dd($employeeAttendance[0]->late);
                                                 echo '<p class="my-text-danger pb-0-5">You clocked in at  '.date("h:i A", strtotime($employeeAttendance[0]->clock_in));
                                                 if(isset($employeeAttendance[0]->late))
                                                 {
@@ -353,81 +388,68 @@
                                     <div class="col-md-12">
                                         <div class="d-flex">
                                             <div class="d-flex align-items-center my-3 punch-in-section">
-                                              <div class="in-out-icon mr-2">
-                                                <svg
-                                                  xmlns="http://www.w3.org/2000/svg"
-                                                  width="24"
-                                                  height="24"
-                                                  viewBox="0 0 24 24"
-                                                  fill="none"
-                                                  stroke="currentColor"
-                                                  stroke-width="2"
-                                                  stroke-linecap="round"
-                                                  stroke-linejoin="round"
-                                                  class="feather feather-log-in text-success"
-                                              
-                                                >
-                                                  <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
-                                                  <polyline points="10 17 15 12 10 7"></polyline>
-                                                  <line x1="15" y1="12" x2="3" y2="12"></line>
-                                                </svg>
-                                              </div>
-                                              <div>
-                                                <h6 class="mb-1">
-                                                    @php
-                                                    if(count($employeeAttendance) > 0 && $employeeAttendance[0]->clock_in != "00:00:00")
-                                                    {
-                                                        $time = Carbon::createFromFormat('H:i:s', $employeeAttendance[0]->clock_in);
-
-                                                        $formattedTime = $time->format('h:i A');
-                                                    }else{
-                                                        $formattedTime = __('Not yet');
-                                                    }
-                                                    @endphp
-                                                    {{ $formattedTime }}
-                                                </h6>
-                                                <p class="text-secondary mb-1">Punch in time</p>
-                                              </div>
+                                                <div class="in-out-icon mr-2">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-log-in text-success">
+                                                        <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+                                                        <polyline points="10 17 15 12 10 7"></polyline>
+                                                        <line x1="15" y1="12" x2="3" y2="12"></line>
+                                                    </svg>
+                                                </div>
+                                                <div>
+                                                    <h6 class="mb-1">
+                                                        @php
+                                                        if(count($employeeAttendance) > 0 && $employeeAttendance[0]->clock_in != "00:00:00")
+                                                        {
+                                                            $time = Carbon::createFromFormat('H:i:s', $employeeAttendance[0]->clock_in);
+                                                            $formattedTime = $time->format('h:i A');
+                                                        } else {
+                                                            $formattedTime = __('Not yet');
+                                                        }
+                                                        @endphp
+                                                        {{ $formattedTime }}
+                                                    </h6>
+                                                    <p class="text-secondary mb-1">Punch in time</p>
+                                                </div>
                                             </div>
+                                    
                                             <div class="d-flex align-items-center my-3 punch-out-section">
-                                              <div class="in-out-icon">
-                                                <svg
-                                                  xmlns="http://www.w3.org/2000/svg"
-                                                  width="24"
-                                                  height="24"
-                                                  viewBox="0 0 24 24"
-                                                  fill="none"
-                                                  stroke="currentColor"
-                                                  stroke-width="2"
-                                                  stroke-linecap="round"
-                                                  stroke-linejoin="round"
-                                                  class="feather feather-log-out text-warning"
-                                              
-                                                >
-                                                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                                                  <polyline points="16 17 21 12 16 7"></polyline>
-                                                  <line x1="21" y1="12" x2="9" y2="12"></line>
-                                                </svg>
-                                              </div>
-                                              <div>
-                                                <h6 class="mb-1">
-                                                    @php
-                                                    if(count($employeeAttendance) > 0 && $employeeAttendance[$count - 1]->clock_out != "00:00:00")
-                                                    {
-                                                        $time = Carbon::createFromFormat('H:i:s', $employeeAttendance[$count - 1]->clock_out);
-
-                                                        $formattedTime = $time->format('h:i A');
-                                                    }else{
-                                                        $formattedTime = __('Not yet');
-                                                    }
-                                                    @endphp
-                                                    {{ $formattedTime }}    
-                                                </h6>
-                                                <p class="text-secondary mb-1">Punch out time</p>
-                                              </div>
+                                                <div class="in-out-icon">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-log-out text-warning">
+                                                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                                        <polyline points="16 17 21 12 16 7"></polyline>
+                                                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                                                    </svg>
+                                                </div>
+                                                <div>
+                                                    <h6 class="mb-1">
+                                                        @php
+                                                        if(count($employeeAttendance) > 0 && $employeeAttendance[$count - 1]->clock_out != "00:00:00")
+                                                        {
+                                                            $time = Carbon::createFromFormat('H:i:s', $employeeAttendance[$count - 1]->clock_out);
+                                                            $formattedTime = $time->format('h:i A');
+                                                        } else {
+                                                            $formattedTime = __('Not yet');
+                                                        }
+                                                        @endphp
+                                                        {{ $formattedTime }}    
+                                                    </h6>
+                                                    <p class="text-secondary mb-1">Punch out time</p>
+                                                </div>
+                                            </div>
+                                    
+                                            <div class="d-flex flex-column align-items-center my-3 ">
+                                                <div class="d-flex align-items-center mb-1">
+                                                    <p class="font-bold mb-0">Work Shift</p>
+                                                </div>
+                                                <div>
+                                                    <span class="badge {{ $shiftType == 'regular' ? 'bg-success' : 'bg-info' }} p-2 px-3 rounded">
+                                                        {{ ucfirst($shiftType) }}
+                                                    </span>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
+                                    
                                     <div class="col-sm-7">
                                         <div class="row">
                                             <div class="text-center col-sm-3 col-lg-3 col-6">
@@ -442,14 +464,18 @@
                                             </div>
                                             <div class="text-center col-sm-3 col-lg-3 col-6">
                                                 <p class="my-text-bold">Balance</p>
-                                                <p class="time">{{ $balane_work_hour }}</p>
+                                                <p class="time">{{ $balance_work_hour }}</p>
                                             </div>
-                                            <div class="text-center col-sm-3 col-lg-3 col-6 d-none">
+                                            <div class="text-center col-sm-3 col-lg-3 col-6">
+                                                <p class="my-text-bold">Schedule</p>
+                                                <p class="time">{{ $totalWorkHours }}</p>
+                                            </div>
+                                            {{-- <div class="text-center col-sm-3 col-lg-3 col-6 d-none">
                                                 <p class="my-text-bold">Overtime</p>
                                                 <p class="time">
                                                     {{ $over_time }}
                                                 </p>
-                                            </div>
+                                            </div> --}}
                                         </div>
 
                                     </div>
@@ -470,14 +496,17 @@
                                             <button type="button" class="mt-2 btn btn-success" id="clock_in" data-bs-toggle="modal" data-bs-target="#clockInModal">
                                                 {{ __('CLOCK IN') }}
                                             </button>
+                                            {{-- <input type="hidden" id="clock_in_lat" name="clock_in_lat">
+                                            <input type="hidden" id="clock_in_long" name="clock_in_long"> --}}
                                              @endif
 
                                             @if (count($employeeAttendance) > 0 && $employeeAttendance[$count - 1]->clock_out == '00:00:00')
-                                                {{ Form::model($employeeAttendance, ['route' => ['attendanceemployee.update', $employeeAttendance[$count - 1]->id], 'method' => 'PUT']) }}
+                                                {{ Form::model($employeeAttendance, ['route' => ['attendanceemployee.update', $employeeAttendance[$count - 1]->id], 'method' => 'PUT','id' => 'clockOutForm']) }}
                                                 <button type="submit" value="1" name="out" id="clock_out"
-                                                    class="mt-2 btn btn-danger">{{ __('CLOCK OUT') }}</button>
-                                            @else
-                                                {{-- <button type="submit" value="1" name="out" id="clock_out" class="btn btn-danger disabled" disabled>{{__('CLOCK OUT')}}</button> --}}
+                                                    class="mt-2 btn btn-danger">{{ __('CLOCK OUT') }}
+                                                </button>
+                                                    <input type="hidden" id="clock_out_lat" name="clock_out_lat">
+                                                    <input type="hidden" id="clock_out_long" name="clock_out_long">
                                             @endif
                                             {{ Form::close() }}
 
@@ -951,6 +980,8 @@
                     <input class="m-1 form-check-input" type="checkbox" id="workFromHomeToggle">
                     <label class="form-check-label my-text-bold" for="workFromHomeToggle">{{ __('Work from Home') }}</label>
                 </div>
+                <input type="hidden" id="clock_in_lat" name="clock_in_lat">
+                <input type="hidden" id="clock_in_long" name="clock_in_long">
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('Close') }}</button>
@@ -1079,32 +1110,81 @@ $(document).ready(function() {
 $(function() {
     var employeeId = '{{ $emp->id ?? "" }}'; // Pass the employee ID to JavaScript
 
-        $('#clockInSubmit').click(function() {
-            $('<form>', {
-                method: 'POST',
-                action: '{{ url("attendanceemployee/attendance") }}'
-            }).append($('<input>', {
-                type: 'hidden',
-                name: '_token',
-                value: '{{ csrf_token() }}'
-            })).append($('<input>', {
-                type: 'hidden',
-                name: 'employee_id',
-                value: employeeId
-            })).append($('<input>', {
-                type: 'hidden',
-                name: 'date',
-                value: '{{ date("Y-m-d") }}'
-            })).append($('<input>', {
-                type: 'hidden',
-                name: 'clock_in',
-                value: '{{ date("H:i:s") }}'
-            })).append($('<input>', {
-                type: 'hidden',
-                name: 'work_from_home',
-                value: $('#workFromHomeToggle').is(':checked') ? 1 : 0
-            })).appendTo('body').submit();
-        });
+    $('#clockInSubmit').click(function() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function(position) {
+                // Create a new form dynamically
+                $('<form>', {
+                    method: 'POST',
+                    action: '{{ url("attendanceemployee/attendance") }}'
+                })
+                .append($('<input>', {
+                    type: 'hidden',
+                    name: '_token',
+                    value: '{{ csrf_token() }}'
+                }))
+                .append($('<input>', {
+                    type: 'hidden',
+                    name: 'employee_id',
+                    value: employeeId
+                }))
+                .append($('<input>', {
+                    type: 'hidden',
+                    name: 'date',
+                    value: '{{ date("Y-m-d") }}'
+                }))
+                .append($('<input>', {
+                    type: 'hidden',
+                    name: 'clock_in',
+                    value: '{{ date("H:i:s") }}'
+                }))
+                .append($('<input>', {
+                    type: 'hidden',
+                    name: 'work_from_home',
+                    value: $('#workFromHomeToggle').is(':checked') ? 1 : 0
+                }))
+                .append($('<input>', {
+                    type: 'hidden',
+                    name: 'clock_in_lat',
+                    value: position.coords.latitude
+                }))
+                .append($('<input>', {
+                    type: 'hidden',
+                    name: 'clock_in_long',
+                    value: position.coords.longitude
+                }))
+                .appendTo('body')
+                .submit();
+            }, function(error) {
+                console.error('Error fetching location:', error);
+                alert('Unable to retrieve your location. Please enable location services and try again.');
+            });
+        } else {
+            console.error('Geolocation is not supported by this browser.');
+            alert('Geolocation is not supported by this browser.');
+        }
     });
+});
+
+// function submitClockOutForm(event) {
+//     event.preventDefault(); // Prevent default form submission
+
+//     if (navigator.geolocation) {
+//         navigator.geolocation.getCurrentPosition(function(position) {
+//             // Set latitude and longitude values in hidden fields
+//             document.getElementById('clock_out_lat').value = position.coords.latitude;
+//             document.getElementById('clock_out_long').value = position.coords.longitude;
+            
+//             // Submit the form after setting the location values
+//             document.getElementById('clockOutForm').submit();
+//         }, function(error) {
+//             console.error('Error fetching location:', error);
+//             alert('Unable to retrieve your location. Please enable location services and try again.');
+//         });
+//     } else {
+//         console.error('Geolocation is not supported by this browser.');
+//         alert('Geolocation is not supported by this browser.');
+//     }
+// }
 </script>
 @endpush

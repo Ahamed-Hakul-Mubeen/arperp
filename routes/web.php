@@ -140,6 +140,7 @@ use App\Http\Controllers\VenderController;
 use App\Http\Controllers\WarehouseController;
 use App\Http\Controllers\WarehouseTransferController;
 use App\Http\Controllers\WarningController;
+use App\Http\Controllers\WorkShiftController;
 use App\Http\Controllers\ZoomMeetingController;
 use App\Http\Controllers\XenditPaymentController;
 use App\Http\Controllers\MidtransPaymentController;
@@ -904,6 +905,8 @@ Route::group(['middleware' => ['verified']], function () {
     Route::get('employee/history/list', [EmployeeHistoryController::class, 'index'])->name('employee.history')->middleware(['auth', 'XSS']);
     Route::get('employee/history/view/{id}', [EmployeeHistoryController::class, 'view'])->name('employee.history.view')->middleware(['auth', 'XSS']);
     Route::get('employee/history/table/{id}', [EmployeeHistoryController::class, 'tableView'])->name('employee.history.table.view')->middleware(['auth', 'XSS']);
+    
+    Route::resource('work_shift', WorkShiftController::class)->middleware(['auth', 'XSS']);
     
     Route::resource('restrict-ip', RestrictIpController::class)->middleware(['auth', 'XSS']);
 

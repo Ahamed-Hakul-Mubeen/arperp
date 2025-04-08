@@ -38,6 +38,7 @@ use App\Models\Trainer;
 use App\Models\Training;
 use App\Models\User;
 use App\Models\Utility;
+use App\Models\WorkShift;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -296,6 +297,32 @@ class DashboardController extends Controller
                         $q->where('events.department_id', '["0"]')->where('events.employee_id', '["0"]');
                     })->get();
 
+                    $workShift = WorkShift::whereHas('employees', function ($query) use ($emp) {
+                        $query->where('work_shift_employees.employee_id', $emp->id);  // Specify the pivot table
+                    })->first();
+                    
+                    $totalWorkHours = "00:00";
+                    $shiftType = 'N/A'; // Default to N/A if no shift is found
+                    
+                    if ($workShift) {
+                        // Check shift type (regular or scheduled)
+                        $shiftType = $workShift->name;
+                    
+                        if ($workShift->shift_type == 'regular') {
+                            // Calculate regular shift total time
+                            $startTime = new \DateTime($workShift->start_time);
+                            $endTime = new \DateTime($workShift->end_time);
+                            $interval = $startTime->diff($endTime);
+                            $hours = $interval->h;
+                            $minutes = $interval->i;
+                            $totalWorkHours = sprintf('%02d:%02d', $hours, $minutes);
+                        } elseif ($workShift->shift_type == 'scheduled') {
+                            // Calculate total scheduled shift time for today
+                            $totalWorkHours = $this->calculateScheduledShiftHours($workShift);
+                        }
+                    }
+            
+                      
                     $arrEvents = [];
                     foreach ($events as $event) {
 
@@ -318,7 +345,7 @@ class DashboardController extends Controller
                     $officeTime['endTime'] = Utility::getValByName('company_end_time');
                     $officeTime['breakTime'] = Utility::getValByName('break_time');
                     //dd($employeeAttendance);
-                    return view('dashboard.dashboard', compact('arrEvents', 'announcements', 'employees', 'meetings', 'employeeAttendance', 'officeTime','emp'));
+                    return view('dashboard.dashboard', compact('arrEvents', 'announcements', 'employees', 'meetings', 'employeeAttendance', 'officeTime','emp','totalWorkHours', 'shiftType'));
                 } else if ($user->type == 'super admin') {
                     $user = \Auth::user();
                     $user['total_user'] = $user->countCompany();
@@ -382,6 +409,7 @@ class DashboardController extends Controller
 
                     $meetings = Meeting::where('created_by', '=', \Auth::user()->creatorId())->limit(5)->get();
                    
+                    
                     return view('dashboard.dashboard', compact('arrEvents', 'onGoingTraining', 'activeJob', 'inActiveJOb', 'doneTraining', 'announcements', 'employees', 'meetings', 'countTrainer', 'countClient', 'countUser', 'notClockIns'));
                 }
             } else {
@@ -710,4 +738,82 @@ class DashboardController extends Controller
         return Utility::error_res('Tracker not found.');
     }
 
+
+    private function calculateScheduledShiftHours($workShift)
+    {
+        // Get today's day of the week
+        $dayOfWeek = strtolower(now()->format('l')); // e.g., 'monday', 'tuesday', etc.
+    
+        // Initialize total hours and minutes
+        $totalHours = 0;
+        $totalMinutes = 0;
+    
+        // Calculate hours only for today's day of the week
+        switch ($dayOfWeek) {
+            case 'sunday':
+                if (!$workShift->is_sunday_off) {
+                    $totalHours = $this->getDayWorkHours($workShift->sunday_start_time, $workShift->sunday_end_time);
+                }
+                break;
+            case 'monday':
+                if (!$workShift->is_monday_off) {
+                    $totalHours = $this->getDayWorkHours($workShift->monday_start_time, $workShift->monday_end_time);
+                }
+                break;
+            case 'tuesday':
+                if (!$workShift->is_tuesday_off) {
+                    $totalHours = $this->getDayWorkHours($workShift->tuesday_start_time, $workShift->tuesday_end_time);
+                }
+                break;
+            case 'wednesday':
+                if (!$workShift->is_wednesday_off) {
+                    $totalHours = $this->getDayWorkHours($workShift->wednesday_start_time, $workShift->wednesday_end_time);
+                }
+                break;
+            case 'thursday':
+                if (!$workShift->is_thursday_off) {
+                    $totalHours = $this->getDayWorkHours($workShift->thursday_start_time, $workShift->thursday_end_time);
+                }
+                break;
+            case 'friday':
+                if (!$workShift->is_friday_off) {
+                    $totalHours = $this->getDayWorkHours($workShift->friday_start_time, $workShift->friday_end_time);
+                }
+                break;
+            case 'saturday':
+                if (!$workShift->is_saturday_off) {
+                    $totalHours = $this->getDayWorkHours($workShift->saturday_start_time, $workShift->saturday_end_time);
+                }
+                break;
+        }
+    
+        // Format total hours into HH:MM format
+        return sprintf('%02d:%02d', floor($totalHours), ($totalHours - floor($totalHours)) * 60);
+    }
+    
+
+    private function getDayWorkHours($startTime, $endTime)
+    {
+        if ($startTime && $endTime) {
+            $start = new \DateTime($startTime);
+            $end = new \DateTime($endTime);
+            $interval = $start->diff($end);
+    
+            // Debug output to check the exact difference
+            \Log::info('Start Time: ' . $start->format('H:i:s') . ', End Time: ' . $end->format('H:i:s'));
+            \Log::info('Time Difference: ' . $interval->h . ' hours, ' . $interval->i . ' minutes, ' . $interval->s . ' seconds');
+    
+            // Convert hours, minutes, and seconds to fractional hours
+            $hours = $interval->h;
+            $minutes = $interval->i;
+            $seconds = $interval->s;
+    
+            // Calculate total time in hours, including seconds to avoid rounding issues
+            $totalTime = $hours + ($minutes / 60) + ($seconds / 3600);
+    
+            return $totalTime;
+        }
+    
+        return 0; // Return 0 if no valid start or end time
+    }
 }
