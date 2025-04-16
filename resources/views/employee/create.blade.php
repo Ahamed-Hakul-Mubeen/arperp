@@ -112,7 +112,13 @@
                                     {!! Form::label('employee_id', __('Employee ID'), ['class' => 'form-label']) !!}
                                     {!! Form::text('employee_id', $employeesId, ['class' => 'form-control', 'disabled' => 'disabled']) !!}
                                 </div>
-
+                                <div class="col-md-6 mb-3 form-group mt-4">
+                                    <label for="is_wfh">{{ __('Work From Home') }}</label>
+                                    <div class="form-check form-switch custom-switch-v1 float-end">
+                                        <input type="checkbox" name="is_wfh" class="form-check-input input-primary pointer" value="on" id="is_wfh">
+                                        <label class="form-check-label" for="is_wfh"></label>
+                                    </div>
+                                </div>
                                 <div class="form-group col-md-6">
                                     {{ Form::label('branch_id', __('Select Company'), ['class' => 'form-label']) }}<span class="pl-1 text-danger">*</span>
                                     <div class="form-icon-user">
@@ -127,7 +133,7 @@
                                     </div>
                                 </div>
 
-                                <div class="form-group ">
+                                <div class="form-group col-md-6">
                                     {{ Form::label('designation_id', __('Select Designation'), ['class' => 'form-label']) }}<span class="pl-1 text-danger">*</span>
 
                                     <div class="form-icon-user">
@@ -224,24 +230,24 @@
 
                                 </div>
                                 <div class="form-group col-md-6">
-                                    {!! Form::label('bank_identifier_code', __('Bank Identifier Code'), ['class' => 'form-label']) !!}
+                                    {!! Form::label('bank_identifier_code', __('Bank IFSC Code'), ['class' => 'form-label']) !!}
                                     {!! Form::text('bank_identifier_code', old('bank_identifier_code'), [
                                         'class' => 'form-control',
-                                        'placeholder' => 'Enter bank identifier code',
+                                        'placeholder' => 'Enter bank IFSC code',
                                     ]) !!}
                                 </div>
                                 <div class="form-group col-md-6">
-                                    {!! Form::label('branch_location', __('Company Location'), ['class' => 'form-label']) !!}
+                                    {!! Form::label('branch_location', __('Branch Location'), ['class' => 'form-label']) !!}
                                     {!! Form::text('branch_location', old('branch_location'), [
                                         'class' => 'form-control',
                                         'placeholder' => 'Enter branch location',
                                     ]) !!}
                                 </div>
                                 <div class="form-group col-md-6">
-                                    {!! Form::label('tax_payer_id', __('Tax Payer Id'), ['class' => 'form-label']) !!}
+                                    {!! Form::label('tax_payer_id', __('Aadhar/PAN No'), ['class' => 'form-label']) !!}
                                     {!! Form::text('tax_payer_id', old('tax_payer_id'), [
                                         'class' => 'form-control',
-                                        'placeholder' => 'Enter tax payer id',
+                                        'placeholder' => 'Enter Aadhar/PAN No',
                                     ]) !!}
                                 </div>
                             </div>

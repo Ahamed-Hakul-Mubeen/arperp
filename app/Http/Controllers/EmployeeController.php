@@ -123,6 +123,11 @@ class EmployeeController extends Controller
 
             if($total_employee < $plan->max_users || $plan->max_users == -1)
             {
+                $is_wfh = 0;
+                if (!empty($request->is_wfh) && $request->is_wfh == 'on') {
+                    $is_wfh = 1;
+                }
+                $request['is_wfh'] = $is_wfh;
                 $user = User::create(
                     [
                         'name' => $request['name'],
@@ -131,6 +136,7 @@ class EmployeeController extends Controller
                         'password' => Hash::make($request['password']),
                         'type' => 'Employee',
                         'lang' => 'en',
+                        'is_wfh' => $is_wfh,
                         'created_by' => \Auth::user()->creatorId(),
                     ]
                 );
@@ -352,8 +358,14 @@ class EmployeeController extends Controller
             $employee = Employee::find($id);
             $user = User::where('id',$employee->user_id)->first();
             if(!empty($user)){
+                $is_wfh = 0;
+                if (!empty($request->is_wfh) && $request->is_wfh == 'on') {
+                    $is_wfh = 1;
+                }
                 $user->name = $employee->name;
                 $user->email = $employee->email;
+                $user->is_wfh = $is_wfh;
+                
                 $user->save();
             }
             if($request->salary)

@@ -77,7 +77,13 @@
                                 {!! Form::label('employee_id', __('Employee ID'), ['class' => 'form-label']) !!}
                                 {!! Form::text('employee_id', $employeesId, ['class' => 'form-control', 'disabled' => 'disabled']) !!}
                             </div>
-
+                            <div class="col-md-6 mb-3 form-group mt-4">
+                                <label for="is_wfh">{{ __('Work From Home') }}</label>
+                                <div class="form-check form-switch custom-switch-v1 float-end">
+                                    <input type="checkbox" name="is_wfh" class="form-check-input input-primary pointer" value="on" id="is_wfh">
+                                    <label class="form-check-label" for="is_wfh"></label>
+                                </div>
+                            </div>
                             <div class="form-group col-md-6">
                                 {{ Form::label('branch_id', __('Company'), ['class' => 'form-label']) }}
                                 {{ Form::select('branch_id', $branches, null, ['class' => 'form-control select', 'required' => 'required', 'id' => 'branch_id']) }}

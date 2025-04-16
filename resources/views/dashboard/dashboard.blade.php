@@ -716,7 +716,7 @@ if (\Auth::user()->type != 'client' && \Auth::user()->type != 'company') {
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="col-md-6 col-sm-6">
+                                        {{-- <div class="col-md-6 col-sm-6">
                                             <div class="mb-3 d-flex align-items-start">
                                                 <div class="theme-avtar bg-danger">
                                                     <i class="ti ti-user"></i>
@@ -727,7 +727,7 @@ if (\Auth::user()->type != 'client' && \Auth::user()->type != 'company') {
 
                                                 </div>
                                             </div>
-                                        </div>
+                                        </div> --}}
                                     </div>
                                 </div>
                             </div>

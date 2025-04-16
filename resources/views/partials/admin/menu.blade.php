@@ -1285,7 +1285,7 @@
         <!--------------------- Start Products System ----------------------------------->
 
         @if (Gate::check('manage product & service') || Gate::check('manage product & service'))
-            <li class="dash-item dash-hasmenu">
+            <li class="dash-item dash-hasmenu d-none">
                 <a href="#!" class="dash-link ">
                     <span class="dash-micon"><i class="ti ti-shopping-cart"></i></span><span
                         class="dash-mtext">{{ __('Products System') }}</span><span class="dash-arrow">
@@ -1443,26 +1443,26 @@
                                     class="dash-link">{{ __('System Settings') }}</a>
                             </li>
                         @endif
-                        @if (Gate::check('manage company plan'))
+                        {{-- @if (Gate::check('manage company plan'))
                             <li
                                 class="dash-item{{ Request::route()->getName() == 'plans.index' || Request::route()->getName() == 'stripe' ? ' active' : '' }}">
                                 <a href="{{ route('plans.index') }}"
                                     class="dash-link">{{ __('Setup Subscription Plan') }}</a>
                             </li>
-                        @endif
+                        @endif --}}
 
-                        @if (Gate::check('manage order') && Auth::user()->type == 'company')
+                        {{-- @if (Gate::check('manage order') && Auth::user()->type == 'company')
                             <li class="dash-item {{ Request::segment(1) == 'order' ? 'active' : '' }}">
                                 <a href="{{ route('order.index') }}" class="dash-link">{{ __('Order') }}</a>
                             </li>
-                        @endif
-                        @if (Gate::check('manage bank account') || Gate::check('manage bank transfer'))
+                        @endif --}}
+                        {{-- @if (Gate::check('manage bank account') || Gate::check('manage bank transfer'))
                         <li
                             class="dash-item {{ Request::route()->getName() == 'bank-account.index' || Request::route()->getName() == 'bank-account.create' || Request::route()->getName() == 'bank-account.edit' ? ' active' : '' }}">
                             <a class="dash-link"
                                 href="{{ route('bank-account.index') }}">{{ __('Account') }}</a>
                         </li>
-                        @endif
+                        @endif --}}
                     </ul>
                 </li>
             @endif
@@ -1669,14 +1669,14 @@
                         </a>
                     </li>
                 @endif --}}
-                @if (Gate::check('manage order'))
+                {{-- @if (Gate::check('manage order'))
                     <li class="dash-item dash-hasmenu  {{ Request::segment(1) == 'orders' ? 'active' : '' }}">
                         <a href="{{ route('order.index') }}" class="dash-link">
                             <span class="dash-micon"><i class="ti ti-shopping-cart-plus"></i></span><span
                                 class="dash-mtext">{{ __('Order') }}</span>
                         </a>
                     </li>
-                @endif
+                @endif --}}
                 {{-- <li
                     class="dash-item dash-hasmenu {{ Request::segment(1) == 'email_template' || Request::route()->getName() == 'manage.email.language' ? ' active dash-trigger' : 'collapsed' }}">
                     <a href="{{ route('manage.email.language', [$emailTemplate->id, \Auth::user()->lang]) }}"
