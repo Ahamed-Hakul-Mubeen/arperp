@@ -35,13 +35,30 @@ class AttendanceEmployeeController extends Controller
                 $emp = !empty(\Auth::user()->employee)?\Auth::user()->employee->id : 0;
 
                 $attendanceEmployee = AttendanceEmployee::where('employee_id', $emp);
+                $start_date = $request->start_date;
+                $end_date = $request->end_date;
+                // if ($request->type == 'monthly' && !empty($request->month)) {
+                //     $month = date('m', strtotime($request->month));
+                //     $year = date('Y', strtotime($request->month));
 
-                if ($request->type == 'monthly' && !empty($request->month)) {
-                    $month = date('m', strtotime($request->month));
-                    $year = date('Y', strtotime($request->month));
+                //     // $start_date = date($year . '-' . $month . '-01');
+                //     // $end_date = date($year . '-' . $month . '-t');
+                //     $start_date = $request->start_date;
+                //     $end_date = $request->end_date;
 
-                    $start_date = date($year . '-' . $month . '-01');
-                    $end_date = date($year . '-' . $month . '-t');
+                //     $attendanceEmployee->whereBetween(
+                //         'date', [
+                //             $start_date,
+                //             $end_date,
+                //         ]
+                //     );
+                // } elseif ($request->type == 'daily' && !empty($request->date)) {
+                //     $attendanceEmployee->where('date', $request->date);
+                // } else {
+                    // $month = date('m');
+                    // $year = date('Y');
+                    // $start_date = date($year . '-' . $month . '-01');
+                    // $end_date = date($year . '-' . $month . '-t');
 
                     $attendanceEmployee->whereBetween(
                         'date', [
@@ -49,25 +66,11 @@ class AttendanceEmployeeController extends Controller
                             $end_date,
                         ]
                     );
-                } elseif ($request->type == 'daily' && !empty($request->date)) {
-                    $attendanceEmployee->where('date', $request->date);
-                } else {
-                    $month = date('m');
-                    $year = date('Y');
-                    $start_date = date($year . '-' . $month . '-01');
-                    $end_date = date($year . '-' . $month . '-t');
-
-                    $attendanceEmployee->whereBetween(
-                        'date', [
-                            $start_date,
-                            $end_date,
-                        ]
-                    );
-                }
+                // }
                 $attendanceEmployee = $attendanceEmployee->get();
 
             } else {
-
+                
                 $employee = Employee::select('id')->where('created_by', \Auth::user()->creatorId());
 
                 if (!empty($request->branch)) {
@@ -77,16 +80,34 @@ class AttendanceEmployeeController extends Controller
                 if (!empty($request->department)) {
                     $employee->where('department_id', $request->department);
                 }
+                if (!empty($request->employee_id) && count($request->employee_id) > 0 && !in_array(0, $request->employee_id)) {
+                    $employee->whereIn('employee_id', $request->employee_id);
+                }
                 $employee = $employee->get()->pluck('id');
 
                 $attendanceEmployee = AttendanceEmployee::whereIn('employee_id', $employee);
+                $start_date = $request->start_date;
+                $end_date = $request->end_date;
+                // if ($request->type == 'monthly' && !empty($request->month)) {
+                //     $month = date('m', strtotime($request->month));
+                //     $year = date('Y', strtotime($request->month));
 
-                if ($request->type == 'monthly' && !empty($request->month)) {
-                    $month = date('m', strtotime($request->month));
-                    $year = date('Y', strtotime($request->month));
+                //     $start_date = date($year . '-' . $month . '-01');
+                //     $end_date = date($year . '-' . $month . '-t');
 
-                    $start_date = date($year . '-' . $month . '-01');
-                    $end_date = date($year . '-' . $month . '-t');
+                //     $attendanceEmployee->whereBetween(
+                //         'date', [
+                //             $start_date,
+                //             $end_date,
+                //         ]
+                //     );
+                // } elseif ($request->type == 'daily' && !empty($request->date)) {
+                //     $attendanceEmployee->where('date', $request->date);
+                // } else {
+                    // $month = date('m');
+                    // $year = date('Y');
+                    // $start_date = date($year . '-' . $month . '-01');
+                    // $end_date = date($year . '-' . $month . '-t');
 
                     $attendanceEmployee->whereBetween(
                         'date', [
@@ -94,21 +115,7 @@ class AttendanceEmployeeController extends Controller
                             $end_date,
                         ]
                     );
-                } elseif ($request->type == 'daily' && !empty($request->date)) {
-                    $attendanceEmployee->where('date', $request->date);
-                } else {
-                    $month = date('m');
-                    $year = date('Y');
-                    $start_date = date($year . '-' . $month . '-01');
-                    $end_date = date($year . '-' . $month . '-t');
-
-                    $attendanceEmployee->whereBetween(
-                        'date', [
-                            $start_date,
-                            $end_date,
-                        ]
-                    );
-                }
+                // }
 
 //                dd($attendanceEmployee->toSql(), $attendanceEmployee->getBindings());
                 $attendanceEmployee = $attendanceEmployee->get();

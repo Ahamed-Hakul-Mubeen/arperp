@@ -21,7 +21,37 @@
         });
 
         $('input[name="type"]:radio:checked').trigger('change');
+        $(document).on('change', '#department', function () {
+            var department_id = $(this).val();
+            getEmployee(department_id);
+        });
 
+        function getEmployee(did) {
+            $.ajax({
+                url: '{{route('report.attendance.getemployee')}}',
+                type: 'POST',
+                data: {
+                    "department_id": did, "_token": "{{ csrf_token() }}",
+                },
+                success: function (data) {
+                    console.log(data);
+                    $('#employee_id').empty();
+                    $("#employee_div").html('');
+                    // $('#employee_div').append('<select class="form-control" id="employee_id" name="employee_id[]"  multiple></select>');
+                    $('#employee_div').append('<label for="employee" class="form-label">{{__('Employee')}}</label><select class="form-control" id="employee_id" name="employee_id[]"  multiple></select>');
+                    $('#employee_id').append('<option value="">{{__('Select Employee')}}</option>');
+                    $('#employee_id').append('<option value="0"> {{__('All Employee')}} </option>');
+
+                    $.each(data, function (key, value) {
+                        $('#employee_id').append('<option value="' + key + '">' + value + '</option>');
+                    });
+
+                    var multipleCancelButton = new Choices('#employee_id', {
+                        removeItemButton: true,
+                    });
+                }
+            });
+        }
     </script>
 @endpush
 @section('breadcrumb')
@@ -54,31 +84,24 @@
                         <div class="row align-items-center">
                             <div class="mt-2 col-xl-9">
                                 <div class="row">
-                                    <div class="col-3">
-                                        <label class="form-label">{{__('Type')}}</label> <br>
-
-                                        <div class="form-check form-check-inline form-group">
-                                            <input type="radio" id="monthly" value="monthly" name="type" class="form-check-input" {{isset($_GET['type']) && $_GET['type']=='monthly' ?'checked':'checked'}}>
-                                            <label class="form-check-label" for="monthly">{{__('Monthly')}}</label>
-                                        </div>
-                                        <div class="form-check form-check-inline form-group">
-                                            <input type="radio" id="daily" value="daily" name="type" class="form-check-input" {{isset($_GET['type']) && $_GET['type']=='daily' ?'checked':''}}>
-                                            <label class="form-check-label" for="daily">{{__('Daily')}}</label>
-                                        </div>
-
-                                    </div>
-                                    <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-12 month">
+                                    <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-12">
                                         <div class="btn-box">
-                                            {{Form::label('month',__('Month'),['class'=>'form-label'])}}
-                                            {{Form::month('month',isset($_GET['month'])?$_GET['month']:date('Y-m'),array('class'=>'month-btn form-control month-btn'))}}
+                                            {{Form::label('start_date',__('Start Date'),['class'=>'form-label'])}}
+                                            {{Form::date('start_date',isset($_GET['start_date'])?$_GET['start_date']:date('Y-m-01'),array('class'=>'month-btn form-control'))}}
                                         </div>
                                     </div>
-                                    <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-12 date">
+                                    <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-12">
+                                        <div class="btn-box">
+                                            {{Form::label('end_date',__('End Date'),['class'=>'form-label'])}}
+                                            {{Form::date('end_date',isset($_GET['end_date'])?$_GET['end_date']:date('Y-m-d'),array('class'=>'month-btn form-control'))}}
+                                        </div>
+                                    </div>
+                                    {{-- <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-12 date">
                                         <div class="btn-box">
                                             {{ Form::label('date', __('Date'),['class'=>'form-label'])}}
                                             {{ Form::date('date',isset($_GET['date'])?$_GET['date']:'', array('class' => 'form-control month-btn')) }}
                                         </div>
-                                    </div>
+                                    </div> --}}
                                     @if(\Auth::user()->type != 'employee')
                                         <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-12">
                                             <div class="btn-box">
@@ -90,6 +113,13 @@
                                             <div class="btn-box">
                                                 {{ Form::label('department', __('Department'),['class'=>'form-label'])}}
                                                 {{ Form::select('department', $department,isset($_GET['department'])?$_GET['department']:'', array('class' => 'form-control select')) }}
+                                            </div>
+                                        </div>
+                                        <div class="col-xl-4 col-lg-4 col-md-6 col-sm-12 col-12 mt-2">
+                                            <div class="btn-box" id="employee_div">
+                                                {{ Form::label('employee', __('Employee'),['class'=>'form-label']) }}
+                                                <select class="form-control select" name="employee_id[]" id="employee_id" placeholder="Select Employee" >
+                                                </select>
                                             </div>
                                         </div>
                                     @endif

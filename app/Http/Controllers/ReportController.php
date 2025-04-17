@@ -2212,37 +2212,54 @@ class ReportController extends Controller
             }
 
             $employees = $employees->get()->pluck('name', 'id');
+            $startDate = date('Y-m-01');
+            $endDate = date('Y-m-d');
+            if (!empty($request->start_date) && !empty($request->start_date)) {
+                if($request->start_date > $request->end_date){
+                    return redirect()->back()->with('error', __('Start date must be less than end date'));
+                }
+                // $currentdate = strtotime($request->month);
+                $month = date('m', strtotime($request->start_date));
+                $year = date('Y', strtotime($request->start_date));
+                // $curMonth = date('M-Y', strtotime($request->month));
+                $startDate = $request->start_date;
+                $endDate = $request->end_date;
 
-            if (!empty($request->month)) {
-                $currentdate = strtotime($request->month);
-                $month = date('m', $currentdate);
-                $year = date('Y', $currentdate);
-                $curMonth = date('M-Y', strtotime($request->month));
-
-            } else {
+            }else {
                 $month = date('m');
                 $year = date('Y');
                 $curMonth = date('M-Y', strtotime($year . '-' . $month));
             }
-
-            $num_of_days = date('t', mktime(0, 0, 0, $month, 1, $year));
-            for ($i = 1; $i <= $num_of_days; $i++) {
-                $dates[] = str_pad($i, 2, '0', STR_PAD_LEFT);
+            
+            $dates = [];
+            
+            $current = strtotime($startDate);
+            $end = strtotime($endDate);
+            
+            while ($current <= $end) {
+                $dates[] = date('d-m-Y', $current);
+                $current = strtotime('+1 day', $current);
             }
+            // $num_of_days = date('t', mktime(0, 0, 0, $month, 1, $year));
+            // for ($i = 1; $i <= $num_of_days; $i++) {
+            //     $dates[] = str_pad($i, 2, '0', STR_PAD_LEFT);
+            // }
 
             $employeesAttendance = [];
             $totalPresent = $totalLeave = $totalEarlyLeave = 0;
             $ovetimeHours = $overtimeMins = $earlyleaveHours = $earlyleaveMins = $lateHours = $lateMins = 0;
             foreach ($employees as $id => $employee) {
                 $attendances['name'] = $employee;
-
+                // dd($dates);
                 foreach ($dates as $date) {
-                    $dateFormat = $year . '-' . $month . '-' . $date;
-
-                    if ($dateFormat <= date('Y-m-d')) {
-                        $employeeAttendance = AttendanceEmployee::where('employee_id', $id)->where('date', $dateFormat)->first();
-
+                    // $dateFormat = $year . '-' . $month . '-' . $date;
+                    // dd($request->start_date, $request->end_date);
+                    // if ($dateFormat <= date('Y-m-d')) {
+                        $employeeAttendance = AttendanceEmployee::where('employee_id', $id)
+                        ->whereDate('date',date('Y-m-d',strtotime($date)))
+                        ->first();
                         if (!empty($employeeAttendance) && $employeeAttendance->status == 'Present') {
+                            // dd($employeeAttendance);
                             $attendanceStatus[$date] = 'P';
                             $totalPresent += 1;
 
@@ -2267,9 +2284,9 @@ class ReportController extends Controller
                         } else {
                             $attendanceStatus[$date] = '';
                         }
-                    } else {
-                        $attendanceStatus[$date] = '';
-                    }
+                    // } else {
+                    //     $attendanceStatus[$date] = '';
+                    // }
 
                 }
                 $attendances['status'] = $attendanceStatus;
@@ -2285,8 +2302,9 @@ class ReportController extends Controller
             $data['totalLate'] = $totalLate;
             $data['totalPresent'] = $totalPresent;
             $data['totalLeave'] = $totalLeave;
-            $data['curMonth'] = $curMonth;
-
+            $data['start_date'] = $request->start_date;
+            $data['end_date'] = $request->end_date;
+            // dd($employeesAttendance);
             return view('report.monthlyAttendance', compact('employeesAttendance', 'branch', 'department', 'dates', 'data'));
         } else {
             return redirect()->back()->with('error', __('Permission denied.'));

@@ -129,10 +129,22 @@
                                 <div class="row">
                                     <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-12">
                                         <div class="btn-box">
+                                            {{Form::label('start_date',__('Start Date'),['class'=>'form-label'])}}
+                                            {{Form::date('start_date',isset($_GET['start_date'])?$_GET['start_date']:date('Y-m-01'),array('class'=>'month-btn form-control'))}}
+                                        </div>
+                                    </div>
+                                    <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-12">
+                                        <div class="btn-box">
+                                            {{Form::label('end_date',__('End Date'),['class'=>'form-label'])}}
+                                            {{Form::date('end_date',isset($_GET['end_date'])?$_GET['end_date']:date('Y-m-d'),array('class'=>'month-btn form-control'))}}
+                                        </div>
+                                    </div>
+                                    {{-- <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-12">
+                                        <div class="btn-box">
                                             {{Form::label('month',__('Month'),['class'=>'form-label'])}}
                                             {{Form::month('month',isset($_GET['month'])?$_GET['month']:date('Y-m'),array('class'=>'month-btn form-control'))}}
                                         </div>
-                                    </div>
+                                    </div> --}}
                                     <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-12">
                                         <div class="btn-box">
                                             {{ Form::label('branch', __('Branch'),['class'=>'form-label']) }}
@@ -147,7 +159,7 @@
                                             </select>
                                         </div>
                                     </div>
-                                    <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-12">
+                                    <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-12 ">
                                         <div class="btn-box" id="department_div">
                                             {{ Form::label('department', __('Department'),['class'=>'form-label']) }}
 {{--                                            {{ Form::select('department', $department,isset($_GET['department'])?$_GET['department']:'', array('class' => 'form-control select')) }}--}}
@@ -155,7 +167,7 @@
                                             </select>
                                         </div>
                                     </div>
-                                    <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-12">
+                                    <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-12 mt-2">
                                         <div class="btn-box" id="employee_div">
                                             {{ Form::label('employee', __('Employee'),['class'=>'form-label']) }}
                                             <select class="form-control select" name="employee_id[]" id="employee_id" placeholder="Select Employee" >
@@ -187,7 +199,7 @@
     <div id="printableArea">
         <div class="row">
             <div class="col">
-                <input type="hidden" value="{{  $data['branch'] .' '.__('Branch') .' '.$data['curMonth'].' '.__('Attendance Report of').' '. $data['department'].' '.'Department'}}" id="filename">
+                <input type="hidden" value="{{  $data['branch'] .' '.__('Branch') .' '.$data['start_date'].' to '. $data['end_date'] .__('Attendance Report of').' '. $data['department'].' '.'Department'}}" id="filename">
                 <div class="card p-4 mb-4">
                     <h6 class="mb-0">{{__('Report')}} :</h6>
                     <h7 class="text-sm mb-0">{{__('Attendance Summary')}}</h7>
@@ -212,7 +224,7 @@
             <div class="col">
                 <div class="card p-4 mb-4">
                     <h6 class=" mb-0">{{__('Duration')}} :</h6>
-                    <h7 class="text-sm mb-0">{{$data['curMonth']}}</h7>
+                    <h7 class="text-sm mb-0">{{$data['start_date']}} to {{  $data['end_date'] }}</h7>
                 </div>
             </div>
         </div>
@@ -260,7 +272,7 @@
                                 <tr>
                                     <th class="active">{{__('Name')}}</th>
                                     @foreach($dates as $date)
-                                        <th>{{$date}}</th>
+                                        <th class="text-center">{{$date}}</th>
                                     @endforeach
                                 </tr>
                                 </thead>
@@ -271,7 +283,7 @@
                                     <tr>
                                         <td>{{$attendance['name']}}</td>
                                         @foreach($attendance['status'] as $status)
-                                            <td>
+                                            <td class="text-center">
                                                 @if($status=='P')
 {{--                                                    <i class="custom-badge badge-success ap">{{__('P')}}</i>--}}
                                                     <i class="badge bg-success p-2 rounded">{{__('P')}}</i>
