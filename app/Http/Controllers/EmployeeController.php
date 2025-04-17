@@ -58,7 +58,7 @@ class EmployeeController extends Controller
             if (!empty($request->branch)) {
                 $employees->where('branch_id', '=', $request->branch);
             }
-          $employees = $employees->with(['designation','branch','department'])->get();
+          $employees = $employees->with(['designation','branch','department','user'])->get();
 
 
             $branches         = Branch::where('created_by', \Auth::user()->creatorId())->get()->select('name', 'id');

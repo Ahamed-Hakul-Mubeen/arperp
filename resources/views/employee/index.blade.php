@@ -101,6 +101,7 @@
                                 <th>{{__('Employee ID')}}</th>
                                 <th>{{__('Name')}}</th>
                                 <th>{{__('Email')}}</th>
+                                <th>{{__('Work From Home')}}</th>
                                 <th>{{__('Company') }}</th>
                                 <th>{{__('Department') }}</th>
                                 <th>{{__('Designation') }}</th>
@@ -122,6 +123,7 @@
                                     </td>
                                     <td class="font-style">{{ $employee->name }}</td>
                                     <td>{{ $employee->email }}</td>
+                                    <td>{{ $employee->user && $employee->user->is_wfh && $employee->user->is_wfh == 1 ? 'Yes' : 'No' }}</td>
                                     @if($employee->branch_id)
                                         <td class="font-style">{{$employee->branch  ? $employee->branch->name:''}}</td>
                                     @else
