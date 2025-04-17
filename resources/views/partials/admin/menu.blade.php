@@ -1264,12 +1264,12 @@
                             <a class="dash-link" href="{{ route('roles.index') }}">{{ __('Role') }}</a>
                         </li>
                     @endcan
-                    @can('manage client')
+                    {{-- @can('manage client')
                         <li
                             class="dash-item {{ Request::route()->getName() == 'clients.index' || Request::segment(1) == 'clients' || Request::route()->getName() == 'clients.edit' ? ' active' : '' }}">
                             <a class="dash-link" href="{{ route('clients.index') }}">{{ __('Client') }}</a>
                         </li>
-                    @endcan
+                    @endcan --}}
                     {{--                                    @can('manage user') --}}
                     {{--                                        <li class="dash-item {{ (Request::route()->getName() == 'users.index' || Request::segment(1) == 'users' || Request::route()->getName() == 'users.edit') ? ' active' : '' }}"> --}}
                     {{--                                            <a class="dash-link" href="{{ route('user.userlog') }}">{{__('User Logs')}}</a> --}}
