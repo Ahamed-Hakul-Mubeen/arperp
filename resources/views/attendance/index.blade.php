@@ -102,7 +102,7 @@
                                             {{ Form::date('date',isset($_GET['date'])?$_GET['date']:'', array('class' => 'form-control month-btn')) }}
                                         </div>
                                     </div> --}}
-                                    @if(\Auth::user()->type != 'employee')
+                                    @if(\Auth::user()->type != 'Employee')
                                         <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-12">
                                             <div class="btn-box">
                                                 {{ Form::label('branch', __('Company'),['class'=>'form-label'])}}

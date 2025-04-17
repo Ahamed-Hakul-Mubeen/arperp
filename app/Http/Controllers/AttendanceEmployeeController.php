@@ -35,8 +35,8 @@ class AttendanceEmployeeController extends Controller
                 $emp = !empty(\Auth::user()->employee)?\Auth::user()->employee->id : 0;
 
                 $attendanceEmployee = AttendanceEmployee::where('employee_id', $emp);
-                $start_date = $request->start_date;
-                $end_date = $request->end_date;
+                $start_date = !empty($request->start_date) ? $request->start_date : date('Y-m-01');
+                $end_date = !empty($request->end_date) ? $request->end_date : date('Y-m-d');
                 // if ($request->type == 'monthly' && !empty($request->month)) {
                 //     $month = date('m', strtotime($request->month));
                 //     $year = date('Y', strtotime($request->month));
@@ -86,8 +86,8 @@ class AttendanceEmployeeController extends Controller
                 $employee = $employee->get()->pluck('id');
 
                 $attendanceEmployee = AttendanceEmployee::whereIn('employee_id', $employee);
-                $start_date = $request->start_date;
-                $end_date = $request->end_date;
+                $start_date = !empty($request->start_date) ? $request->start_date : date('Y-m-01');
+                $end_date = !empty($request->end_date) ? $request->end_date : date('Y-m-d');
                 // if ($request->type == 'monthly' && !empty($request->month)) {
                 //     $month = date('m', strtotime($request->month));
                 //     $year = date('Y', strtotime($request->month));
