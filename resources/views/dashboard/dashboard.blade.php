@@ -692,7 +692,7 @@ if (\Auth::user()->type != 'client' && \Auth::user()->type != 'company') {
                         <div class="col-xxl-12">
                             <div class="card">
                                 <div class="card-body">
-                                    <h5>{{ __('Staff') }}</h5>
+                                    <h5>{{ __('Users') }}</h5>
                                     <div class="mt-4 row">
                                         <div class="col-md-6 col-sm-6">
                                             <div class="mb-3 d-flex align-items-start">
@@ -700,7 +700,7 @@ if (\Auth::user()->type != 'client' && \Auth::user()->type != 'company') {
                                                     <i class="ti ti-users"></i>
                                                 </div>
                                                 <div class="ms-2">
-                                                    <p class="mb-0 text-sm text-muted">{{ __('Total Staff') }}</p>
+                                                    <p class="mb-0 text-sm text-muted">{{ __('Total Users') }}</p>
                                                     <h4 class="mb-0 text-success">{{ $countUser + $countClient }}</h4>
                                                 </div>
                                             </div>
