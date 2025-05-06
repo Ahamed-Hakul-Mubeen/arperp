@@ -66,6 +66,15 @@
 {{--        </a>--}}
 {{--    </div>--}}
 {{--@endsection--}}
+@section('action-btn')
+<div class="float-end">
+    @can('create leave')
+    <a href="#" data-size="lg" data-url="{{ route('attendanceemployee.create') }}" data-ajax-popup="true" data-bs-toggle="tooltip" title="{{__('Create')}}" data-title="{{__('Create Attendance')}}" class="btn btn-sm btn-primary">
+        <i class="ti ti-plus"></i>
+    </a>
+    @endcan
+</div>
+@endsection
 @section('content')
 
 
@@ -186,7 +195,7 @@
                             @foreach ($attendanceEmployee as $attendance)
                                 <tr>
                                     @if(\Auth::user()->type!='Employee')
-                                        <td>{{!empty($attendance->employee)?$attendance->employee->name:'' }}</td>
+                                        <td>{{!empty($attendance->employees)?$attendance->employees->name:'' }}</td>
                                     @endif
                                     <td>{{ \Auth::user()->dateFormat($attendance->date) }}</td>
                                     <td>{{ $attendance->status }}</td>

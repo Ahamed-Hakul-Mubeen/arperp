@@ -21,7 +21,7 @@ class AttendanceEmployeeController extends Controller
 {
     public function index(Request $request)
     {
-
+        // dd($request->all());
         if (\Auth::user()->can('manage attendance')) {
 
             $branch = Branch::where('created_by', \Auth::user()->creatorId())->get()->pluck('name', 'id');
@@ -71,22 +71,24 @@ class AttendanceEmployeeController extends Controller
 
             } else {
                 
-                $employee = Employee::select('id')->where('created_by', \Auth::user()->creatorId());
-
+                $employee = Employee::select('id','user_id')->where('created_by', \Auth::user()->creatorId());
+                
                 if (!empty($request->branch)) {
                     $employee->where('branch_id', $request->branch);
                 }
-
+                
                 if (!empty($request->department)) {
                     $employee->where('department_id', $request->department);
                 }
+                
                 if (!empty($request->employee_id) && count($request->employee_id) > 0 && !in_array(0, $request->employee_id)) {
-                    $employee->whereIn('employee_id', $request->employee_id);
+                    // dd($request->employee_id);
+                    $employee->whereIn('id', $request->employee_id);
                 }
-                $employee = $employee->get()->pluck('id');
-
-                $attendanceEmployee = AttendanceEmployee::whereIn('employee_id', $employee);
-                $start_date = !empty($request->start_date) ? $request->start_date : date('Y-m-01');
+                $employee = $employee->get()->pluck('user_id');
+                // dd($employee);
+                $attendanceEmployee = AttendanceEmployee::with('employees')->whereIn('employee_id', $employee);
+                $start_date = !empty($request->start_date) ? $request->start_date : date('Y-m-d', strtotime(date('Y-m-01') . ' -1 day'));
                 $end_date = !empty($request->end_date) ? $request->end_date : date('Y-m-d');
                 // if ($request->type == 'monthly' && !empty($request->month)) {
                 //     $month = date('m', strtotime($request->month));
@@ -126,6 +128,7 @@ class AttendanceEmployeeController extends Controller
                 $ip = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN';
                 // EmployeeHistory::storeHistory(auth()->user()->id, "View", "Viewed Attendance List", $ip);
             }
+            // dd($attendanceEmployee);
             return view('attendance.index', compact('attendanceEmployee', 'branch', 'department'));
         } else {
             return redirect()->back()->with('error', __('Permission denied.'));
@@ -136,7 +139,6 @@ class AttendanceEmployeeController extends Controller
     {
         if (\Auth::user()->can('create attendance')) {
             $employees = User::where('created_by', '=', Auth::user()->creatorId())->where('type', '=', "employee")->get()->pluck('name', 'id');
-
             return view('attendance.create', compact('employees'));
         } else {
             return redirect()->back()->with('error', __('Permission denied.'));
@@ -146,13 +148,15 @@ class AttendanceEmployeeController extends Controller
 
     public function store(Request $request)
     {
+        // dd($request->all());
         if (\Auth::user()->can('create attendance')) {
             $validator = \Validator::make(
                 $request->all(), [
                     'employee_id' => 'required',
-                    'date' => 'required',
-                    'clock_in' => 'required',
-                    'clock_out' => 'required',
+                    'start_date'  => 'required|date',
+                    'end_date'    => 'required|date|after_or_equal:start_date',
+                    'clock_in'    => 'required',
+                    'clock_out'   => 'required',
                 ]
             );
             if ($validator->fails()) {
@@ -163,10 +167,10 @@ class AttendanceEmployeeController extends Controller
 
             $startTime = Utility::getValByName('company_start_time');
             $endTime = Utility::getValByName('company_end_time');
-            $attendance = AttendanceEmployee::where('employee_id', '=', $request->employee_id)->where('date', '=', $request->date)->where('clock_out', '=', '00:00:00')->get()->toArray();
-            if ($attendance) {
-                return redirect()->route('attendanceemployee.index')->with('error', __('Employee Attendance Already Created.'));
-            } else {
+            // $attendance = AttendanceEmployee::where('employee_id', '=', $request->employee_id)->where('date', '=', $request->date)->where('clock_out', '=', '00:00:00')->get()->toArray();
+            // if ($attendance) {
+            //     return redirect()->route('attendanceemployee.index')->with('error', __('Employee Attendance Already Created.'));
+            // } else {
                 $date = date("Y-m-d");
 
                 $totalLateSeconds = strtotime($request->clock_in) - strtotime($date . $startTime);
@@ -195,21 +199,41 @@ class AttendanceEmployeeController extends Controller
                     $overtime = '00:00:00';
                 }
 
-                $employeeAttendance = new AttendanceEmployee();
-                $employeeAttendance->employee_id = $request->employee_id;
-                $employeeAttendance->date = $request->date;
-                $employeeAttendance->status = 'Present';
-                $employeeAttendance->clock_in = $request->clock_in . ':00';
-                $employeeAttendance->clock_out = $request->clock_out . ':00';
-                $employeeAttendance->late = $late;
-                $employeeAttendance->early_leaving = $earlyLeaving;
-                $employeeAttendance->overtime = $overtime;
-                $employeeAttendance->total_rest = '00:00:00';
-                $employeeAttendance->created_by = \Auth::user()->creatorId();
-                $employeeAttendance->save();
+                $start = strtotime($request->start_date);
+                $end = strtotime($request->end_date);
+
+                $weekdays = [];
+
+                for ($date = $start; $date <= $end; $date = strtotime("+1 day", $date)) {
+                    $day = date("N", $date); // 1 (Monday) to 7 (Sunday)
+                    if ($day >= 1 && $day <= 5) {
+                        $weekdays[] = date("Y-m-d", $date);
+                    }
+                }
+                if(count($weekdays) > 0)
+                {
+                    foreach ($weekdays as $key => $date) {
+                        $employeeAttendance = AttendanceEmployee::where('employee_id', '=', $request->employee_id)->where('date', '=', $date)->first();
+                        if(empty($employeeAttendance))
+                        {
+                            $employeeAttendance = new AttendanceEmployee();
+                        }
+                        $employeeAttendance->employee_id = $request->employee_id;
+                        $employeeAttendance->date = $date;
+                        $employeeAttendance->status = 'Present';
+                        $employeeAttendance->clock_in = $request->clock_in . ':00';
+                        $employeeAttendance->clock_out = $request->clock_out . ':00';
+                        $employeeAttendance->late = $late;
+                        $employeeAttendance->early_leaving = $earlyLeaving;
+                        $employeeAttendance->overtime = $overtime;
+                        $employeeAttendance->total_rest = '00:00:00';
+                        $employeeAttendance->created_by = \Auth::user()->creatorId();
+                        $employeeAttendance->save();
+                    }
+                }
 
                 return redirect()->route('attendanceemployee.index')->with('success', __('Employee attendance successfully created.'));
-            }
+            // }
         } else {
             return redirect()->back()->with('error', __('Permission denied.'));
         }
@@ -224,7 +248,7 @@ class AttendanceEmployeeController extends Controller
     {
         if (\Auth::user()->can('edit attendance')) {
             $attendanceEmployee = AttendanceEmployee::where('id', $id)->first();
-            $employees = Employee::where('created_by', '=', \Auth::user()->creatorId())->get()->pluck('name', 'id');
+            $employees = User::where('created_by', '=', \Auth::user()->creatorId())->get()->pluck('name', 'id');
             if($attendanceEmployee->total_break_duration != null)
             {
                 $timeString = $attendanceEmployee->total_break_duration;

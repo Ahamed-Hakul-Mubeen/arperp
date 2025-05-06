@@ -1,17 +1,22 @@
 {{Form::open(array('url'=>'attendanceemployee','method'=>'post'))}}
-<div class="p-0 card-body">
+<div class="modal-body">
+{{-- <div class="card-body"> --}}
     <div class="row">
-        <div class="form-group col-lg-6 col-md-6">
+        <div class="form-group col-lg-12 col-md-6">
             {{Form::label('employee_id',__('Employee'))}}
             {{Form::select('employee_id',$employees,null,array('class'=>'form-control select2'))}}
         </div>
         <div class="form-group col-lg-6 col-md-6">
-            {{Form::label('date',__('Date'))}}
-            {{Form::text('date',null,array('class'=>'form-control datepicker'))}}
+            {{Form::label('start_date',__('Start Date'))}}
+            {{Form::date('start_date',null,array('class'=>'form-control datepicker w-100','max' => \Carbon\Carbon::today()->toDateString()))}}
+        </div>
+        <div class="form-group col-lg-6 col-md-6">
+            {{Form::label('end_date',__('End Date'))}}
+            {{Form::date('end_date',null,array('class'=>'form-control datepicker w-100','max' => \Carbon\Carbon::today()->toDateString()))}}
         </div>
         <div class="form-group col-lg-6 col-md-6">
             {{Form::label('clock_in',__('Clock In'))}}
-            {{Form::time('clock_in',null,array('class'=>'form-control '))}}
+            {{Form::time('clock_in',null,array('class'=>'form-control'))}}
 
         </div>
         <div class="form-group col-lg-6 col-md-6">
