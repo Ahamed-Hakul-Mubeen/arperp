@@ -116,9 +116,14 @@ class PaySlipController extends Controller
             $no_of_days = date('t', strtotime($start_date));
             $end_date = $year."-".$month."-".$no_of_days;
 
-            $check_attendance = AttendanceEmployee::where('employee_id', $employee->id)->whereBetween('date', [$start_date, $end_date])->first();
+            $check_attendance = AttendanceEmployee::where('employee_id', $employee->user_id)->whereBetween('date', [$start_date, $end_date])->first();
+            
             if($check_attendance)
             {
+                if($employee->user_id == 15) {
+                    
+                    // dd($employee->leave_deductions($year, $month));
+                }
                 $payslipEmployee                       = new PaySlip();
                 $payslipEmployee->employee_id          = $employee->id;
                 $payslipEmployee->net_payble           = $employee->get_net_salary($year, $month);
@@ -133,7 +138,6 @@ class PaySlipController extends Controller
                 $payslipEmployee->other_payment        = Employee::other_payment($employee->id);
                 $payslipEmployee->overtime             = Employee::overtime($year, $month, $employee->id);
                 $payslipEmployee->created_by           = \Auth::user()->creatorId();
-                // dd($payslipEmployee);
                 $payslipEmployee->save();
 
                 $ip = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN';

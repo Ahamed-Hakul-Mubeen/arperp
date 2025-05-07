@@ -193,15 +193,22 @@ class Employee extends Model
         $start_date = $year."-".$month."-01";
         $no_of_days = date('t', strtotime($start_date));
         $end_date = $year."-".$month."-".$no_of_days;
+        $weekends = [];
 
-        $attendance_days = AttendanceEmployee::where("employee_id", $this->id)->whereBetween('date', [$start_date, $end_date])->groupBy('date')->get()->count();       
+        for ($date = strtotime($start_date); $date <= strtotime($end_date); $date = strtotime("+1 day", $date)) {
+            $day = date("N", $date); // 1 (Monday) to 7 (Sunday)
+            if ($day == 6 || $day == 7) {
+                $weekends[] = date("Y-m-d", $date);
+            }
+        }
+        
+        $attendance_days = AttendanceEmployee::where("employee_id", $this->user_id)->whereBetween('date', [$start_date, $end_date])->groupBy('date')->get()->count();       
         $start_date = ($start_date < $this->company_doj) ? date('Y-m-d', strtotime($this->company_doj . ' +1 day')) : $start_date;
         $end_date = ($end_date > date('Y-m-d')) ? date('Y-m-d') : $end_date;
         $holidays = Holiday::whereBetween('date', [$start_date, $end_date])->where('created_by', \Auth::user()->creatorId())->get()->count();
-        $approved_leave = Leave::where('employee_id', $this->id)->where(function($query) use ($start_date, $end_date) {
+        $approved_leave = Leave::where('employee_id', $this->user_id)->where(function($query) use ($start_date, $end_date) {
                     $query->whereBetween('start_date', [$start_date, $end_date])->orWhereBetween('end_date', [$start_date, $end_date]);
                 })->where('status', 'Approved')->get();
-                
         $approved_leave_count = 0;
         foreach($approved_leave as $leave)
         {
@@ -225,7 +232,7 @@ class Employee extends Model
             }
         }
 
-        $acceptable_days = $attendance_days + $holidays + $approved_leave_count;
+        $acceptable_days = $attendance_days + $holidays + $approved_leave_count + count($weekends);
         $deduction_days = $no_of_days - $acceptable_days;
         if($deduction_days == 0) {
             $leave_deductions = 0;
